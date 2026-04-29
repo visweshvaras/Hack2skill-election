@@ -1,0 +1,11 @@
+{
+  "last_updated": "2026-04-29T06:22:43.932040+00:00",
+  "news": [],
+  "election": {
+    "status": "error",
+    "message": "ECI returned status code 403",
+    "columns": [],
+    "table": [],
+    "source": "https://results.eci.gov.in"
+  }
+}

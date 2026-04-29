@@ -1,0 +1,22 @@
+{
+  "name": "naagrikinfo",
+  "version": "1.0.0",
+  "description": "Election Assistant and Political Transparency Platform",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx live-server --port=8000",
+    "api": "node server.js"
+  },
+  "keywords": [
+    "election",
+    "dashboard"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "fast-xml-parser": "^5.7.2"
+  }
+}

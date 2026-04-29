@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="NaagrikInfo — Your interactive guide to Indian elections, MPs, MLAs, and government promise tracking. Understand Indian democracy.">
+  <title>NaagrikInfo — Indian Election & Politics Guide</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+  <div class="warning-banner" id="warningBanner">
+    <div class="warning-content">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      <p><strong>Disclaimer:</strong> This platform shows data from configured third-party and official feeds. Please verify critical figures with primary election authorities.</p>
+    </div>
+    <button class="warning-close" id="closeWarning" aria-label="Close warning">&times;</button>
+  </div>
+
+  <div class="mesh-bg" id="meshBackground">
+    <div class="mesh-blob mesh-blob--saffron"></div>
+    <div class="mesh-blob mesh-blob--green"></div>
+    <div class="mesh-blob mesh-blob--blue"></div>
+  </div>
+
+  <header class="site-header glass-card" id="siteHeader">
+    <div class="header-content">
+      <a href="#" class="logo" id="logo">
+        <svg viewBox="0 0 32 32" width="32" height="32" class="logo-icon">
+          <circle cx="16" cy="16" r="14" fill="none" stroke="#1a56db" stroke-width="2"/>
+          <circle cx="16" cy="16" r="4" fill="#1a56db"/>
+          <!-- Simplified spokes for Ashoka Chakra -->
+          <path d="M16 2 L16 30 M2 16 L30 16 M6.1 6.1 L25.9 25.9 M6.1 25.9 L25.9 6.1 M10.3 3.5 L21.7 28.5 M3.5 10.3 L28.5 21.7 M3.5 21.7 L28.5 10.3 M10.3 28.5 L21.7 3.5" stroke="#1a56db" stroke-width="1"/>
+        </svg>
+        <span>NaagrikInfo</span>
+      </a>
+      <nav class="nav-links" id="mainNav">
+        <a href="#hero" class="nav-link active" data-section="hero">Home</a>
+        <a href="#election-process" class="nav-link" data-section="election-process">Elections</a>
+        <a href="#representatives" class="nav-link" data-section="representatives">Reps</a>
+        <a href="#live-track" class="nav-link" data-section="live-track">Live Track</a>
+        <a href="#member-assessment" class="nav-link" data-section="member-assessment">Accountability</a>
+        
+        <div class="dropdown">
+          <button class="nav-link dropdown-toggle" aria-haspopup="true" aria-expanded="false">More ▾</button>
+          <div class="dropdown-menu glass-card">
+            <a href="#integrity" class="dropdown-item" data-section="integrity">Integrity Analysis</a>
+            <a href="#ed-cases" class="dropdown-item" data-section="ed-cases">ED Cases</a>
+            <a href="#state-analysis" class="dropdown-item" data-section="state-analysis">State Analysis</a>
+            <a href="#states" class="dropdown-item" data-section="states">States Map</a>
+            <a href="#promises" class="dropdown-item" data-section="promises">Promise Tracker</a>
+            <a href="#quiz" class="dropdown-item" data-section="quiz">Quiz</a>
+          </div>
+        </div>
+      </nav>
+      <div class="header-actions">
+        <div class="search-wrapper" id="searchWrapper">
+          <button class="search-toggle" id="searchToggle" aria-label="Open search">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </button>
+          <input type="text" id="globalSearch" placeholder="Search MPs, MLAs, states..." class="search-input" aria-label="Search MPs MLAs states parties">
+        </div>
+        <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark/light mode">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <circle cx="12" cy="12" r="5"/>
+            <path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42m12.72-12.72l1.42-1.42" stroke="currentColor" stroke-width="2"/>
+          </svg>
+        </button>
+        <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Open navigation menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="hero">
+      <div class="hero-content fade-in">
+        <div class="hero-badge glass-card">
+          <svg viewBox="0 0 32 32" width="16" height="16" class="logo-icon"><circle cx="16" cy="16" r="14" fill="none" stroke="#1a56db" stroke-width="2"/><circle cx="16" cy="16" r="4" fill="#1a56db"/><path d="M16 2 L16 30 M2 16 L30 16 M6.1 6.1 L25.9 25.9 M6.1 25.9 L25.9 6.1 M10.3 3.5 L21.7 28.5 M3.5 10.3 L28.5 21.7 M3.5 21.7 L28.5 10.3 M10.3 28.5 L21.7 3.5" stroke="#1a56db" stroke-width="1"/></svg>
+          <span>Your Guide to Indian Democracy</span>
+        </div>
+        <h1 class="hero-title">Understand India's <span class="gradient-text">Election Process</span></h1>
+        <p class="hero-subtitle">Explore how the world's largest democracy works. Search MPs &amp; MLAs, track government promises, and test your knowledge — all in one place.</p>
+        <div class="hero-cta">
+          <a href="#representatives" class="btn btn-primary">Find Your Representatives</a>
+          <a href="assistant.html" target="_blank" class="btn btn-saffron" style="background: linear-gradient(135deg, var(--chakra-blue), var(--chakra-blue-light)); color: white;">Launch Election Assistant ✨</a>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-card glass-card scale-in">
+            <span class="stat-number" data-target="543">0</span>
+            <span class="stat-label">Lok Sabha Seats</span>
+          </div>
+          <div class="stat-card glass-card scale-in" style="--delay:100ms">
+            <span class="stat-number" data-target="245">0</span>
+            <span class="stat-label">Rajya Sabha Seats</span>
+          </div>
+          <div class="stat-card glass-card scale-in" style="--delay:200ms">
+            <span class="stat-number" data-target="28">0</span>
+            <span class="stat-label">States</span>
+          </div>
+          <div class="stat-card glass-card scale-in" style="--delay:300ms">
+            <span class="stat-number" data-target="960" data-suffix="M+">0</span>
+            <span class="stat-label">Eligible Voters</span>
+          </div>
+        </div>
+      </div>
+      <div class="hero-visual fade-in">
+        <div class="hero-map-container" id="heroMap">
+          <div class="map-loading">Loading Map...</div>
+        </div>
+      </div>
+    </section>
+    <section class="election-process-section" id="election-process">
+      <div class="section-container">
+        <div class="section-header fade-in">
+          <span class="section-tag">Elections</span>
+          <h2 class="section-title">How Indian <span class="gradient-text">Democracy</span> Works</h2>
+          <p class="section-desc">Understand the three main pillars of India's legislative system.</p>
+        </div>
+        
+        <div class="process-tabs">
+          <div class="tab-nav fade-in">
+            <button class="tab-btn active" data-tab="lok-sabha">Lok Sabha</button>
+            <button class="tab-btn" data-tab="rajya-sabha">Rajya Sabha</button>
+            <button class="tab-btn" data-tab="vidhan-sabha">Vidhan Sabha</button>
+          </div>
+          
+          <div class="tab-content active" id="lok-sabha" data-searchable="lok sabha parliament fptp first past the post evm nota">
+            <h3 class="process-title">Lok Sabha — House of the People</h3>
+            <div class="process-flow">
+              <div class="step"><div class="step-icon">1</div><p>Voter Registration</p></div>
+              <div class="step-connector"></div>
+              <div class="step"><div class="step-icon">2</div><p>Voting via EVM</p></div>
+              <div class="step-connector"></div>
+              <div class="step"><div class="step-icon">3</div><p>Vote Counting</p></div>
+              <div class="step-connector"></div>
+              <div class="step"><div class="step-icon">4</div><p>Government Formation</p></div>
+            </div>
+            <div class="facts-grid">
+              <div class="fact-card glass-card"><h4>Seats</h4><p>543 elected seats</p></div>
+              <div class="fact-card glass-card"><h4>Voting System</h4><p>First-Past-The-Post (FPTP) — candidate with most wins</p></div>
+              <div class="fact-card glass-card"><h4>Election</h4><p>Direct election by citizens 18+ years</p></div>
+              <div class="fact-card glass-card"><h4>Term</h4><p>5-year term, can be dissolved early</p></div>
+              <div class="fact-card glass-card"><h4>Mechanism</h4><p>ECI conducts elections using EVMs with VVPAT</p></div>
+              <div class="fact-card glass-card"><h4>NOTA</h4><p>None Of The Above option available since 2013</p></div>
+              <div class="fact-card glass-card"><h4>Government</h4><p>Party/coalition with 272+ seats forms government</p></div>
+              <div class="fact-card glass-card"><h4>Leadership</h4><p>PM elected by majority party/coalition</p></div>
+            </div>
+          </div>
+
+          <div class="tab-content" id="rajya-sabha" data-searchable="rajya sabha council states stv indirect">
+            <h3 class="process-title">Rajya Sabha — Council of States</h3>
+            <div class="facts-grid">
+              <div class="fact-card glass-card"><h4>Seats</h4><p>245 members (233 elected + 12 nominated)</p></div>
+              <div class="fact-card glass-card"><h4>Election</h4><p>Indirect election — elected by MLAs using STV</p></div>
+              <div class="fact-card glass-card"><h4>Term</h4><p>6-year term, 1/3 retire every 2 years</p></div>
+              <div class="fact-card glass-card"><h4>Permanence</h4><p>Permanent body — cannot be dissolved</p></div>
+              <div class="fact-card glass-card"><h4>Role</h4><p>Represents states and UTs at the federal level</p></div>
+            </div>
+          </div>
+
+          <div class="tab-content" id="vidhan-sabha" data-searchable="vidhan sabha state assembly mla cm chief minister">
+            <h3 class="process-title">Vidhan Sabha — State Legislative Assembly</h3>
+            <div class="facts-grid">
+              <div class="fact-card glass-card"><h4>Seats</h4><p>Each state has its own assembly (60-403 seats)</p></div>
+              <div class="fact-card glass-card"><h4>Voting System</h4><p>First-Past-The-Post (FPTP) voting</p></div>
+              <div class="fact-card glass-card"><h4>Election</h4><p>Direct election by state citizens</p></div>
+              <div class="fact-card glass-card"><h4>Term</h4><p>5-year term</p></div>
+              <div class="fact-card glass-card"><h4>Government</h4><p>Party with majority forms state government</p></div>
+              <div class="fact-card glass-card"><h4>Leadership</h4><p>Governor appoints Chief Minister (CM)</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="representatives-section" id="representatives">
+      <div class="section-container">
+        <div class="section-header fade-in">
+          <span class="section-tag">Representatives</span>
+          <h2 class="section-title">Find Your <span class="gradient-text">Leaders</span></h2>
+          <p class="section-desc">Search and filter Lok Sabha MPs and State MLAs.</p>
+        </div>
+        
+        <div class="filter-bar fade-in">
+          <select class="filter-select" id="repTypeFilter" aria-label="Filter by representative type">
+            <option value="mp">Lok Sabha (MPs)</option>
+            <option value="mla">Vidhan Sabha (MLAs)</option>
+          </select>
+          <select class="filter-select" id="stateFilter" aria-label="Filter by state">
+            <option value="">All States</option>
+          </select>
+          <select class="filter-select" id="partyFilter" aria-label="Filter by party">
+            <option value="">All Parties</option>
+          </select>
+          <input type="text" class="filter-input" id="repSearchInput" placeholder="Search by name or constituency..." aria-label="Search representatives">
+        </div>
+        
+        <div class="data-table-wrapper fade-in">
+          <table class="data-table" id="repTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Constituency</th>
+                <th>State</th>
+                <th>Party</th>
+              </tr>
+            </thead>
+            <tbody id="repTableBody">
+            </tbody>
+          </table>
+        </div>
+        
+        <div class="pagination" id="repPagination">
+          <button class="btn btn-secondary btn-sm" id="prevPage" disabled>Previous</button>
+          <span class="page-info" id="pageInfo">Page 1 of 1</span>
+          <button class="btn btn-secondary btn-sm" id="nextPage" disabled>Next</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="news-section" id="live-track">
+      <div class="section-container">
+        <div class="section-header fade-in">
+          <span class="section-tag">Live Data</span>
+          <h2 class="section-title">Live <span class="gradient-text">Election Updates</span></h2>
+          <p class="section-desc">Auto-refreshing internet data for election coverage and constituency-level vote counting.</p>
+        </div>
+        <div class="news-grid fade-in">
+          <div class="news-feed glass-card" id="newsFeed">
+            <!-- Populated by JS -->
+          </div>
+          <div class="live-tracker glass-card">
+            <div class="tracker-title-container">
+              <h3 class="tracker-title">Live Vote Counting</h3>
+              <a href="https://results.eci.gov.in" target="_blank" class="source-logo" title="Data Source: Election Commission of India">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/e/e0/Election_Commission_of_India_logo.png" alt="ECI Logo">
+              </a>
+            </div>
+            <div class="tracker-list" id="liveTrackerList">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="state-analysis-section" id="state-analysis">
+      <div class="section-container">
+        <div class="section-header fade-in">
+          <span class="section-tag">Regional</span>
+          <div class="section-title-container">
+            <h2 class="section-title">State-wise <span class="gradient-text">Promise Analysis</span></h2>
+            <a href="https://news.google.com" target="_blank" class="source-logo-large" title="Data Source: Google News Aggregation">
+              <img src="https://upload.wikimedia.org/wikipedia/commons/d/da/Google_News_icon.svg" alt="Google News Logo">
+            </a>
+          </div>
+          <p class="section-desc">Assess how ruling parties in different states are fulfilling their regional campaign promises.</p>
+        </div>
+        
+        <div class="filter-bar fade-in">
+          <select class="filter-select" id="analysisStateSelect" aria-label="Select state for analysis">
+            <!-- Populated by JS -->
+          </select>
+        </div>
+        
+        <div class="state-analysis-content fade-in glass-card" id="stateAnalysisDisplay">
+          <div class="analysis-header">
+            <h3 id="asStateName">Select a State</h3>
+            <span class="state-party-badge" id="asRulingParty">--</span>
+          </div>
+          <div class="analysis-stats">
+            <div class="stat-box"><span class="stat-val" id="asTotal">0</span><span class="stat-label">Total Promises</span></div>
+            <div class="stat-box"><span class="stat-val text-green" id="asFulfilled">0%</span><span class="stat-label">Fulfilled</span></div>
+            <div class="stat-box"><span class="stat-val text-saffron" id="asPending">0%</span><span class="stat-label">Pending</span></div>
+            <div class="stat-box"><span class="stat-val text-error" id="asBroken">0%</span><span class="stat-label">Broken/Delayed</span></div>
+          </div>
+          <div class="analysis-details" id="asDetailsList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="member-assessment-section" id="member-assessment">
+      <div class="section-container">
+        <div class="section-header fade-in">
+          <span class="section-tag">Accountability</span>
+          <h2 class="section-title">Member <span class="gradient-text">Promise Assessment</span></h2>
+          <p class="section-desc">Live tracker of individual MPs and their constituency-level promises, performance, and details.</p>
+        </div>
+        
+        <div class="filter-bar fade-in">
+          <input type="text" class="filter-input" id="memberSearchInput" placeholder="Search by MP name or constituency..." aria-label="Search members">
+        </div>
+        
+        <div class="member-grid fade-in" id="memberAssessmentGrid">
+          <!-- Populated by JS -->
+        </div>
+        
+        <div class="pagination" id="memberPagination">
+          <button class="btn btn-secondary btn-sm" id="memPrevPage" disabled>Previous</button>
+          <span class="page-info" id="memPageInfo">Page 1 of 1</span>
+          <button class="btn btn-secondary btn-sm" id="memNextPage" disabled>Next</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="integrity-section" id="integrity">
+      <div class="section-container">
+        <div class="section-header fade-in">
+          <span class="section-tag">Analysis</span>
+          <div class="section-title-container">
+            <h2 class="section-title">Party <span class="gradient-text-blue">Integrity Metrics</span></h2>
+            <a href="https://myneta.info" target="_blank" class="source-logo-large" title="Data Source: Association for Democratic Reforms (ADR)">
+              <img src="https://myneta.info/images/adr-logo.gif" alt="ADR MyNeta Logo">
+            </a>
+          </div>
+          <p class="section-desc">Party-level integrity metrics from connected data feeds and public data providers.</p>
+        </div>
+        <div class="integrity-container glass-card fade-in">
+          <div class="integrity-controls">
+            <select class="filter-select" id="integrityPartySelect">
+              <option value="BJP">Bharatiya Janata Party (BJP)</option>
+              <option value="INC">Indian National Congress (INC)</option>
+              <option value="AAP">Aam Aadmi Party (AAP)</option>
+              <option value="TMC">Trinamool Congress (TMC)</option>
+            </select>
+          </div>
+          <div class="chart-container table-container" id="integrityTableContainer">
+            <table class="data-table" id="integrityTableGraph">
+              <thead>
+                <tr>
+                  <th>Metric</th>
+                  <th>Assumed Score (0-10)</th>
+                  <th>Trend</th>
+                </tr>
+              </thead>
+              <tbody id="integrityTableBody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+          <div class="integrity-legend" id="integrityLegend">
+            <p class="integrity-note">Note: Metrics shown here depend on the connected integrity feed and are refreshed from that source.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ed-cases-section" id="ed-cases">
+      <div class="section-container">
+        <div class="section-header fade-in">
+          <span class="section-tag">Enforcement</span>
+          <h2 class="section-title">ED Cases <span class="gradient-text">2015-16 to 2024</span></h2>
+          <p class="section-desc">Year-wise number of Directorate of Enforcement cases registered against MPs, MLAs, and political leaders.</p>
+        </div>
+
+        <div class="ed-cases-summary fade-in" id="edCasesSummary">
+          <div class="stat-card glass-card">
+            <span class="stat-number" id="edCasesTotal">--</span>
+            <span class="stat-label">Total Cases</span>
+          </div>
+          <div class="stat-card glass-card" style="--delay:100ms">
+            <span class="stat-number" id="edCasesYears">--</span>
+            <span class="stat-label">Years Covered</span>
+          </div>
+          <div class="stat-card glass-card" style="--delay:200ms">
+            <span class="stat-number" id="edCasesPeak">--</span>
+            <span class="stat-label">Peak Year</span>
+          </div>
+        </div>
+
+        <div class="data-table-wrapper fade-in">
+          <table class="data-table" id="edCasesTable">
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>MPs</th>
+                <th>MLAs</th>
+                <th>Political Leaders</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="edCasesTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="states-section" id="states">
+      <div class="section-container">
+        <div class="section-header fade-in">
+          <span class="section-tag">States</span>
+          <h2 class="section-title">Explore <span class="gradient-text-blue">States</span></h2>
+          <p class="section-desc">View political data for all 28 states and 8 Union Territories.</p>
+        </div>
+        <div class="states-layout fade-in">
+          <div class="states-map-card glass-card">
+            <div class="states-map-header">
+              <div>
+                <h3 class="states-map-title">India Political Map</h3>
+                <p class="states-map-desc">Current ruling party, chief minister, and centre alignment by state.</p>
+              </div>
+              <div class="states-map-legend" aria-label="Political alignment legend">
+                <span class="legend-pill legend-pill--aligned">Centre aligned</span>
+                <span class="legend-pill legend-pill--regional">Regional</span>
+                <span class="legend-pill legend-pill--opposition">Opposition</span>
+              </div>
+            </div>
+            <div class="india-map-stage" id="indiaStateMap" aria-label="Interactive India political map">
+              <svg class="india-map-backdrop" viewBox="0 0 520 640" aria-hidden="true">
+                <path d="M167 54l44 15 26 40 55 17 63 44 8 46-19 39 12 38-29 24 9 42-34 25-10 49-39 39-32 5-27 58-52-26-16-54-49-23-28-58 13-47-34-28-25-70 21-73 42-58 49-18 28-44 44-12z"></path>
+                <path d="M363 535l38 34-7 32-43-10-12-31 24-25z"></path>
+                <path d="M424 432l24 42-12 43 26 57 30 22"></path>
+              </svg>
+              <div class="state-map-tooltip glass-card" id="stateMapTooltip" role="status" aria-live="polite"></div>
+            </div>
+          </div>
+        </div>
+        <div class="states-grid fade-in" id="statesGrid">
+        </div>
+      </div>
+    </section>
+    <section class="promises-section" id="promises">
+      <div class="section-container">
+        <div class="section-header fade-in">
+          <span class="section-tag">Tracker</span>
+          <h2 class="section-title">Government <span class="gradient-text">Promises</span></h2>
+          <p class="section-desc">Track the fulfillment status of major government initiatives.</p>
+        </div>
+        
+        <div class="promises-summary fade-in" id="promisesSummaryCards">
+        </div>
+        
+        <div class="promises-charts fade-in">
+          <div class="chart-card glass-card">
+            <h3 class="chart-title">Promises Trend (Line Graph)</h3>
+            <div class="chart-container">
+              <canvas id="lineChart" aria-label="Line chart showing promises trend over time"></canvas>
+            </div>
+          </div>
+          <div class="chart-card glass-card">
+            <h3 class="chart-title">Overall Status (Pie Graph)</h3>
+            <div class="chart-container">
+              <canvas id="pieChart" aria-label="Pie chart showing overall promise fulfillment status"></canvas>
+            </div>
+          </div>
+        </div>
+        
+        <div class="promises-accordion fade-in" id="promisesAccordion">
+        </div>
+      </div>
+    </section>
+    <section class="quiz-section" id="quiz">
+      <div class="section-container">
+        <div class="section-header fade-in">
+          <span class="section-tag">Quiz</span>
+          <h2 class="section-title">Test Your <span class="gradient-text">Knowledge</span></h2>
+          <p class="section-desc">How well do you know Indian democracy? Take this quiz!</p>
+        </div>
+        <div class="quiz-container glass-card scale-in" id="quizContainer">
+          <div class="quiz-progress" id="quizProgress">
+            <div class="quiz-progress-bar" id="quizProgressBar"></div>
+            <span class="quiz-progress-text" id="quizProgressText">Question 1 of 8</span>
+          </div>
+          <div class="quiz-question" id="quizQuestion"></div>
+          <div class="quiz-options" id="quizOptions"></div>
+          <div class="quiz-feedback glass-card" id="quizFeedback"></div>
+          <button class="btn btn-primary quiz-next" id="quizNext" style="display:none">Next Question</button>
+        </div>
+        <div class="quiz-results glass-card" id="quizResults" style="display:none">
+          <div class="results-score" id="resultsScore"></div>
+          <p class="results-message" id="resultsMessage"></p>
+          <button class="btn btn-primary" id="quizRestart">Try Again</button>
+        </div>
+      </div>
+    </section>
+    <section class="faq-section" id="faq">
+      <div class="section-container">
+        <div class="section-header fade-in">
+          <span class="section-tag">FAQ</span>
+          <h2 class="section-title">Frequently Asked <span class="gradient-text">Questions</span></h2>
+          <p class="section-desc">Quick answers to common questions about Indian democracy.</p>
+        </div>
+        <div class="faq-list">
+          <div class="faq-item glass-card" id="faq-1" data-searchable="who can vote citizen 18 epic voter id">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-1">
+              <span>Who can vote in Indian elections?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="faq-answer" id="faq-ans-1" role="region">
+              <div class="faq-answer-inner">
+                <p>An Indian citizen, 18+ years of age, registered in the electoral roll, with a valid voter ID (EPIC) or an ECI-approved ID.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="faq-item glass-card" id="faq-2" data-searchable="election commission eci cec independent body">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-2">
+              <span>What is the Election Commission of India (ECI)?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="faq-answer" id="faq-ans-2" role="region">
+              <div class="faq-answer-inner">
+                <p>An independent constitutional body (Article 324) that conducts all elections, headed by the Chief Election Commissioner (CEC) and 2 Election Commissioners.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item glass-card" id="faq-3" data-searchable="fptp voting system first past the post">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-3">
+              <span>How does the FPTP voting system work?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="faq-answer" id="faq-ans-3" role="region">
+              <div class="faq-answer-inner">
+                <p>The candidate with the most votes wins. No minimum threshold is needed. This system is used in Lok Sabha and Vidhan Sabha elections.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item glass-card" id="faq-4" data-searchable="nota none of the above evm">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-4">
+              <span>What is NOTA and how does it work?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="faq-answer" id="faq-ans-4" role="region">
+              <div class="faq-answer-inner">
+                <p>NOTA stands for "None Of The Above". Available on EVMs since 2013, it allows voters to reject all candidates. However, even if NOTA gets the highest votes, the candidate with the next highest votes still wins.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item glass-card" id="faq-5" data-searchable="prime minister pm elected president">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-5">
+              <span>How is the Prime Minister elected?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="faq-answer" id="faq-ans-5" role="region">
+              <div class="faq-answer-inner">
+                <p>The Prime Minister is not directly elected by the people. The PM is the leader of the majority party or coalition in the Lok Sabha, appointed by the President.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item glass-card" id="faq-6" data-searchable="difference lok sabha rajya sabha">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-6">
+              <span>What's the difference between Lok Sabha and Rajya Sabha?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="faq-answer" id="faq-ans-6" role="region">
+              <div class="faq-answer-inner">
+                <p>Lok Sabha has direct elections, 543 seats, handles money bills, and has a 5-year term. Rajya Sabha is elected indirectly by MLAs, has 245 seats, acts as a review chamber, and is a permanent body.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item glass-card" id="faq-7" data-searchable="evm vvpat electronic voting machine receipt">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-7">
+              <span>What is an EVM and VVPAT?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="faq-answer" id="faq-ans-7" role="region">
+              <div class="faq-answer-inner">
+                <p>An Electronic Voting Machine (EVM) is used for digital voting. Voter Verified Paper Audit Trail (VVPAT) prints a paper receipt visible to the voter for 7 seconds to verify their vote before dropping into a sealed box.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item glass-card" id="faq-8" data-searchable="delimitation constituency sc st reserved">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-8">
+              <span>How are constituencies delimited?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="faq-answer" id="faq-ans-8" role="region">
+              <div class="faq-answer-inner">
+                <p>The Delimitation Commission redraws constituency boundaries based on the latest census data to ensure roughly equal population representation, including allocating reserved seats for SC and ST communities.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item glass-card" id="faq-9" data-searchable="model code of conduct mcc rules">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-9">
+              <span>What is the Model Code of Conduct?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="faq-answer" id="faq-ans-9" role="region">
+              <div class="faq-answer-inner">
+                <p>It's a set of guidelines issued by the ECI regulating political parties and candidates during the election period. It prohibits new government announcements, hate speech, and voter inducements.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="faq-item glass-card" id="faq-10" data-searchable="hung parliament floor test president">
+            <button class="faq-question" aria-expanded="false" aria-controls="faq-ans-10">
+              <span>What happens during a hung parliament?</span>
+              <svg class="faq-chevron" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </button>
+            <div class="faq-answer" id="faq-ans-10" role="region">
+              <div class="faq-answer-inner">
+                <p>When no party or pre-poll alliance secures a clear majority (272+ seats), the President invites the leader of the single largest party or coalition to form the government and prove their majority in a "floor test".</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <section class="resources-section" id="resources">
+      <div class="section-container">
+        <div class="section-header fade-in">
+          <span class="section-tag">Resources</span>
+          <h2 class="section-title">Official <span class="gradient-text">Sources</span></h2>
+          <p class="section-desc">Access official portals and verified election data.</p>
+        </div>
+        <div class="resources-grid fade-in">
+          <a href="https://eci.gov.in" target="_blank" rel="noopener" class="resource-card glass-card">
+            <div class="resource-icon">🏛️</div>
+            <h3>Election Commission</h3>
+            <p>Official portal for election schedules, results, and rules.</p>
+          </a>
+          <a href="https://affidavit.eci.gov.in" target="_blank" rel="noopener" class="resource-card glass-card">
+            <div class="resource-icon">📄</div>
+            <h3>Candidate Affidavits</h3>
+            <p>View financial and criminal records filed by candidates.</p>
+          </a>
+          <a href="https://adrindia.org" target="_blank" rel="noopener" class="resource-card glass-card">
+            <div class="resource-icon">📊</div>
+            <h3>ADR India</h3>
+            <p>Association for Democratic Reforms: detailed analysis of politicians.</p>
+          </a>
+          <a href="https://prsindia.org" target="_blank" rel="noopener" class="resource-card glass-card">
+            <div class="resource-icon">📜</div>
+            <h3>PRS Legislative</h3>
+            <p>Track MP performance, attendance, and legislative debates.</p>
+          </a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer glass-card" id="siteFooter">
+    <div class="footer-content">
+      <div class="footer-brand">
+        <span class="footer-logo">NaagrikInfo</span>
+        <p>Empowering informed citizens through transparent political data.</p>
+      </div>
+      <div class="footer-links">
+        <a href="https://eci.gov.in" target="_blank" rel="noopener">Election Commission of India</a>
+        <a href="https://sansad.in" target="_blank" rel="noopener">Parliament of India</a>
+        <a href="https://india.gov.in" target="_blank" rel="noopener">India.gov.in</a>
+      </div>
+      <p class="footer-disclaimer">Data is for educational purposes. Verify with official sources.</p>
+    </div>
+  </footer>
+
+  <!-- LinkedIn-style Profile Modal -->
+  <div id="profileModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="profileName">
+    <div class="modal-content profile-modal-content glass-card">
+      <span class="close-modal" id="closeProfileModal" aria-label="Close modal">&times;</span>
+      
+      <div class="profile-header">
+        <div class="profile-cover"></div>
+        <div class="profile-avatar">👤</div>
+      </div>
+      
+      <div class="profile-intro">
+        <div class="profile-main-info">
+          <h2 id="profileName">--</h2>
+          <p class="profile-headline" id="profileHeadline">Member of Parliament</p>
+          <p class="profile-location" id="profileLocation">--</p>
+        </div>
+        <div class="profile-party">
+          <span class="state-party-badge" id="profilePartyBadge">--</span>
+        </div>
+      </div>
+      
+      <div class="profile-actions">
+        <button class="btn btn-primary">Follow</button>
+        <button class="btn btn-secondary">Message</button>
+        <button class="btn btn-secondary">More...</button>
+      </div>
+      
+      <div class="profile-sections">
+        <div class="profile-section glass-card">
+          <h3>About</h3>
+          <p id="profileAbout">A dedicated public servant focused on regional development, infrastructure, and agricultural reforms. Committed to transparent governance.</p>
+        </div>
+        
+        <div class="profile-section glass-card">
+          <h3>Activity & Promises</h3>
+          <div class="activity-feed" id="profileActivity">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+        
+        <div class="profile-section glass-card">
+          <h3>Experience (Terms)</h3>
+          <div class="experience-list" id="profileExperience">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+        
+        <div class="profile-section glass-card">
+          <h3>Top Skills & Public Endorsements</h3>
+          <div class="skills-list" id="profileSkills">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Representative Detail Modal -->
+  <div id="repDetailsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="repDetailsName">
+    <div class="modal-content rep-details-modal glass-card">
+      <div class="rep-details-header">
+        <div class="rep-head-meta">
+          <img id="repDetailsImage" class="rep-headshot" src="" alt="Representative profile image">
+          <div class="rep-head-text">
+            <h2 id="repDetailsName">--</h2>
+            <p id="repDetailsRole">--</p>
+            <p id="repDetailsConstituency">--</p>
+            <div class="rep-meta-row">
+              <span class="state-party-badge" id="repDetailsPartyBadge">--</span>
+              <span class="rep-pill">Status: <strong id="repDetailsStatus">--</strong></span>
+            </div>
+          </div>
+        </div>
+        <button class="close-modal" id="closeRepDetailsModal" aria-label="Close representative details">&times;</button>
+      </div>
+
+      <div class="rep-details-body">
+        <div class="rep-summary-card glass-card">
+          <h3>Political Summary</h3>
+          <div class="rep-summary-stats">
+            <div class="rep-kpi">
+              <span class="rep-kpi-label">Overall Political Score</span>
+              <span class="rep-kpi-value" id="repDetailsOverall">--</span>
+            </div>
+            <div class="rep-kpi">
+              <span class="rep-kpi-label">Win Probability</span>
+              <span class="rep-kpi-value" id="repDetailsWinChance">--</span>
+            </div>
+            <div class="rep-kpi">
+              <span class="rep-kpi-label">Tenure</span>
+              <span class="rep-kpi-value" id="repDetailsTenure">--</span>
+            </div>
+            <div class="rep-kpi">
+              <span class="rep-kpi-label">Alliance Strength</span>
+              <span class="rep-kpi-value" id="repDetailsAlliance">--</span>
+            </div>
+            <div class="rep-kpi">
+              <span class="rep-kpi-label">Party Positioning</span>
+              <span class="rep-kpi-value" id="repDetailsPartyLean">--</span>
+            </div>
+          </div>
+          <ul class="rep-highlight-list" id="repHighlights"></ul>
+        </div>
+
+        <div class="rep-assessment-card glass-card">
+          <h3>Political Assessment Parameters</h3>
+          <p class="section-desc" style="font-size: var(--fs-sm); margin-top: 4px;">Data shown here comes directly from your configured representative detail source.</p>
+          <div class="rep-assessment-list" id="repAssessmentList"></div>
+        </div>
+
+        <div class="rep-profile-card glass-card">
+          <h3>Candidate Background</h3>
+          <div class="rep-profile-grid">
+            <div class="rep-kpi"><span class="rep-kpi-label">Age</span><span class="rep-kpi-value" id="repDetailAge">--</span></div>
+            <div class="rep-kpi"><span class="rep-kpi-label">Education</span><span class="rep-kpi-value rep-kpi-small" id="repDetailEducation">--</span></div>
+            <div class="rep-kpi"><span class="rep-kpi-label">Profession</span><span class="rep-kpi-value rep-kpi-small" id="repDetailProfession">--</span></div>
+            <div class="rep-kpi"><span class="rep-kpi-label">Cases (Declared)</span><span class="rep-kpi-value rep-kpi-small" id="repDetailCases">--</span></div>
+            <div class="rep-kpi"><span class="rep-kpi-label">Assets</span><span class="rep-kpi-value rep-kpi-small" id="repDetailAssets">--</span></div>
+            <div class="rep-kpi"><span class="rep-kpi-label">Liabilities</span><span class="rep-kpi-value rep-kpi-small" id="repDetailLiabilities">--</span></div>
+            <div class="rep-kpi"><span class="rep-kpi-label">Net Worth</span><span class="rep-kpi-value rep-kpi-small" id="repDetailNetWorth">--</span></div>
+            <div class="rep-kpi rep-kpi-wide"><span class="rep-kpi-label">Top Constituency Issues</span><span class="rep-kpi-value rep-kpi-small" id="repDetailIssues">--</span></div>
+          </div>
+        </div>
+
+        <div class="rep-election-card glass-card">
+          <h3>Recent Election History</h3>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Year</th>
+                  <th>Result</th>
+                  <th>Vote Share</th>
+                  <th>Margin (Votes)</th>
+                </tr>
+              </thead>
+              <tbody id="repElectionHistory"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="rep-manifesto-card glass-card">
+          <h3>Manifesto Promise Mapping</h3>
+          <div class="rep-manifesto-list" id="repManifestoList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- News Article Modal -->
+  <div id="newsModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="newsModalTitle">
+    <div class="modal-content news-modal-content glass-card">
+      <span class="close-modal" id="closeNewsModal" aria-label="Close modal">&times;</span>
+      
+      <div class="news-modal-header">
+        <img id="newsModalImage" src="" alt="News Image">
+      </div>
+      
+      <div class="news-modal-body">
+        <div class="news-modal-meta">
+          <span id="newsModalSource" class="news-modal-source">--</span>
+          <span id="newsModalTime" class="news-modal-time">--</span>
+        </div>
+        <h2 id="newsModalTitle" class="news-modal-title">--</h2>
+        <div class="news-modal-badge-container">
+          <span id="newsModalCategory" class="state-party-badge">--</span>
+        </div>
+        <div class="news-modal-text">
+          <p id="newsModalContent">--</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- State Constituency Details Modal -->
+  <div id="constituencyModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="constituencyModalTitle">
+    <div class="modal-content glass-card" style="max-width: 800px;">
+      <span class="close-modal" id="closeConstituencyModal" aria-label="Close modal">&times;</span>
+      <div class="modal-header">
+        <h2 id="constituencyModalTitle">State Details</h2>
+        <div id="constituencyModalStatus" class="live-badge">Loading...</div>
+        <p id="constituencyModalSource" class="section-desc" style="margin-top: 5px; font-size: 0.8rem;"></p>
+      </div>
+      <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
+        <table class="data-table" id="constituencyTable">
+          <thead>
+            <tr>
+              <th>Constituency</th>
+              <th>Candidate</th>
+              <th>Party</th>
+              <th>Status</th>
+              <th>Margin / Assets</th>
+            </tr>
+          </thead>
+          <tbody id="constituencyTableBody">
+            <!-- Populated by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data scripts -->
+  <script src="data/states-data.js"></script>
+  <script src="data/mp-data.js"></script>
+  <script src="data/mla-data.js"></script>
+  <script src="data/promises-data.js"></script>
+  <script src="data/live-config.js"></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

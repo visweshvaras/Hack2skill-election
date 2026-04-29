@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>India Politics & Election Tracker</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: #151c33;
+      --text: #e7ecff;
+      --muted: #9ba8d0;
+      --green: #17b26a;
+      --yellow: #f5c451;
+      --red: #f04438;
+      --line: #273053;
+      --link: #7cc6ff;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Segoe UI, Arial, sans-serif;
+      background: radial-gradient(circle at top, #1a2448, var(--bg));
+      color: var(--text);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .title {
+      margin: 0 0 12px;
+      font-size: 28px;
+      font-weight: 700;
+    }
+
+    .sub {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .status-banner {
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 18px;
+      border: 1px solid transparent;
+      font-weight: 600;
+    }
+
+    .status-active {
+      background: rgba(23, 178, 106, 0.15);
+      border-color: rgba(23, 178, 106, 0.45);
+      color: #b9ffd7;
+    }
+
+    .status-no_table {
+      background: rgba(245, 196, 81, 0.15);
+      border-color: rgba(245, 196, 81, 0.45);
+      color: #ffeec2;
+    }
+
+    .status-error, .status-inactive {
+      background: rgba(240, 68, 56, 0.15);
+      border-color: rgba(240, 68, 56, 0.45);
+      color: #ffd0cd;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+
+    @media (min-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    .card {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 18px;
+    }
+
+    .news-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 12px;
+    }
+
+    .news-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.12);
+    }
+
+    .news-item a {
+      color: var(--link);
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .news-item a:hover {
+      text-decoration: underline;
+    }
+
+    .meta {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .table-wrap {
+      overflow: auto;
+      max-height: 520px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    th, td {
+      padding: 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      background: #131a30;
+      z-index: 1;
+    }
+
+    .actions {
+      margin: 14px 0;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      background: #1f2a4d;
+      color: var(--text);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #24335f;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="title">India Politics & Election Tracker</h1>
+    <p class="sub">No API keys. Sources: Google News RSS + ECI result tables. Auto snapshots every 5 minutes.</p>
+
+    <div id="statusBanner" class="status-banner status-inactive">Loading ECI status...</div>
+
+    <div class="actions">
+      <button id="refreshBtn">Refresh Now</button>
+      <button id="snapshotBtn">Force Snapshot</button>
+      <span id="updatedAt" class="sub"></span>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <h2>Top 10 Live News</h2>
+        <ul id="newsList" class="news-list"></ul>
+      </section>
+
+      <section class="card">
+        <h2>ECI Live Counting Table</h2>
+        <div class="table-wrap">
+          <table id="eciTable"></table>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const newsList = document.getElementById('newsList');
+    const eciTable = document.getElementById('eciTable');
+    const statusBanner = document.getElementById('statusBanner');
+    const updatedAt = document.getElementById('updatedAt');
+
+    function mapStatus(status) {
+      if (status === 'active') {
+        return { cls: 'status-active', text: 'ECI Status: Active (table scraped successfully)' };
+      }
+      if (status === 'no_table') {
+        return { cls: 'status-no_table', text: 'ECI Status: No Table Found (portal up, table not published yet)' };
+      }
+      if (status === 'error') {
+        return { cls: 'status-error', text: 'ECI Status: Inactive / Error (connection or parsing failed)' };
+      }
+      return { cls: 'status-inactive', text: 'ECI Status: Inactive / Error' };
+    }
+
+    function renderNews(news) {
+      if (!news || !news.length) {
+        newsList.innerHTML = '<li class="news-item">No news entries available.</li>';
+        return;
+      }
+
+      newsList.innerHTML = news.map(item => `
+        <li class="news-item">
+          <a href="${item.publisher_link || item.google_link}" target="_blank" rel="noopener noreferrer">${item.title || 'Untitled'}</a>
+          <div class="meta">${item.published || ''}</div>
+        </li>
+      `).join('');
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function renderTable(columns, rows) {
+      if (!rows || !rows.length || !columns || !columns.length) {
+        eciTable.innerHTML = '<tbody><tr><td>No counting table available.</td></tr></tbody>';
+        return;
+      }
+
+      const head = `<thead><tr>${columns.map(col => `<th>${escapeHtml(col)}</th>`).join('')}</tr></thead>`;
+      const body = `<tbody>${rows.map(row => `<tr>${columns.map(col => `<td>${escapeHtml(row[col] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody>`;
+      eciTable.innerHTML = head + body;
+    }
+
+    async function loadData() {
+      const response = await fetch('/api/live-data');
+      if (!response.ok) {
+        throw new Error(`Failed to load: ${response.status}`);
+      }
+
+      const data = await response.json();
+      renderNews(data.news || []);
+      renderTable(data.election?.columns || [], data.election?.table || []);
+
+      const mapped = mapStatus(data.election?.status);
+      statusBanner.className = `status-banner ${mapped.cls}`;
+      statusBanner.textContent = `${mapped.text}. ${data.election?.message || ''}`;
+      updatedAt.textContent = data.last_updated ? `Last Updated: ${data.last_updated}` : '';
+    }
+
+    async function forceSnapshot() {
+      const response = await fetch('/api/snapshot/run', { method: 'POST' });
+      if (!response.ok) {
+        throw new Error(`Snapshot failed: ${response.status}`);
+      }
+      await loadData();
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', () => {
+      loadData().catch(err => {
+        statusBanner.className = 'status-banner status-error';
+        statusBanner.textContent = `ECI Status: Inactive / Error. ${err.message}`;
+      });
+    });
+
+    document.getElementById('snapshotBtn').addEventListener('click', () => {
+      forceSnapshot().catch(err => {
+        statusBanner.className = 'status-banner status-error';
+        statusBanner.textContent = `Snapshot error: ${err.message}`;
+      });
+    });
+
+    loadData().catch(err => {
+      statusBanner.className = 'status-banner status-error';
+      statusBanner.textContent = `ECI Status: Inactive / Error. ${err.message}`;
+    });
+
+    setInterval(() => {
+      loadData().catch(() => {});
+    }, 60000);
+  </script>
+</body>
+</html>

@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interactive Election Guide | NaagrikInfo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-main);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: var(--font-body);
+      overflow-x: hidden;
+    }
+    
+    h1, h2, h3, h4 {
+      font-family: var(--font-heading);
+    }
+    
+    .guide-header {
+      padding: var(--space-lg) var(--space-2xl);
+      background: rgba(0,0,0,0.3);
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .guide-header h1 {
+      margin: 0;
+      font-size: var(--fs-xl);
+      background: linear-gradient(90deg, #FF9933, #FFFFFF, #138808);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      color: transparent;
+    }
+    
+    .stepper-container {
+      padding: var(--space-xl) var(--space-2xl);
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+      max-width: 1000px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    .stepper-line {
+      position: absolute;
+      top: 20px; /* align to center of 40px circle */
+      left: 60px;
+      right: 60px;
+      height: 4px;
+      background: rgba(255,255,255,0.15); /* increased contrast */
+      z-index: 1;
+      border-radius: 2px;
+    }
+    
+    .stepper-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--chakra-blue), var(--chakra-blue-light));
+      width: 0%;
+      transition: width 0.5s ease;
+      border-radius: 2px;
+    }
+    
+    .step-item {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-sm);
+      cursor: pointer;
+    }
+    
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 2px solid rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      font-size: var(--fs-lg);
+    }
+    
+    .step-label {
+      font-size: var(--fs-sm);
+      color: var(--text-secondary);
+      transition: color 0.3s ease;
+      text-align: center;
+      width: 90px;
+      white-space: nowrap; /* prevent label wrapping */
+    }
+    
+    .step-item.active .step-circle {
+      border-color: var(--chakra-blue-light);
+      background: var(--chakra-blue);
+      color: #fff;
+      box-shadow: 0 0 15px var(--chakra-blue);
+    }
+    
+    .step-item.active .step-label {
+      color: #fff;
+      font-weight: bold;
+    }
+    
+    .step-item.completed .step-circle {
+      background: var(--green-light);
+      border-color: var(--green-light);
+      color: #000;
+    }
+    
+    .guide-content-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-xl);
+      margin-top: var(--space-2xl); /* Added margin-top to separate from stepper */
+    }
+    
+    .guide-card {
+      max-width: 900px; /* Increased max-width */
+      width: 100%;
+      min-height: 400px;
+      padding: var(--space-3xl); /* Increased padding */
+      position: relative;
+      display: none;
+      animation: fadeInSlide 0.5s ease forwards;
+      border-radius: var(--radius-xl); /* Increased border-radius */
+      background: rgba(10, 14, 39, 0.6); /* Slightly darker background for contrast */
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5); /* Stronger shadow */
+    }
+    
+    .guide-card.active {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    @keyframes fadeInSlide {
+      from { opacity: 0; transform: translateY(20px); } /* Changed to slide up instead of left/right */
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .card-icon {
+      font-size: 4rem;
+      margin-bottom: var(--space-md);
+    }
+    
+    .card-title {
+      font-size: var(--fs-2xl);
+      margin-bottom: var(--space-md);
+      color: var(--chakra-blue-light);
+    }
+    
+    .card-text {
+      font-size: var(--fs-lg);
+      line-height: 1.6;
+      color: var(--text-secondary);
+      margin-bottom: var(--space-xl);
+    }
+    
+    .interactive-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr); /* always 3 columns */
+      grid-auto-rows: 1fr;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-2xl);
+    }
+    
+    @media (max-width: 700px) {
+      .interactive-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .info-box {
+      background: rgba(0,0,0,0.3);
+      padding: var(--space-md);
+      border-radius: var(--radius-md);
+      border-left: 4px solid var(--saffron);
+      transition: transform 0.2s;
+    }
+    
+    .info-box:hover {
+      transform: translateY(-5px);
+    }
+    
+    .info-box h4 {
+      margin-top: 0;
+      margin-bottom: var(--space-xs);
+      color: #fff;
+    }
+    
+    .info-box p {
+      margin: 0;
+      font-size: var(--fs-sm);
+      color: var(--text-secondary);
+    }
+    
+    .guide-controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: var(--space-xl);
+      border-top: 1px solid var(--glass-border);
+    }
+    
+    .btn-guide {
+      padding: var(--space-md) var(--space-xl);
+      border-radius: var(--radius-full);
+      font-size: var(--fs-base);
+      font-weight: bold;
+      cursor: pointer;
+      border: none;
+      transition: all 0.3s;
+    }
+    
+    .btn-prev {
+      background: rgba(255,255,255,0.1);
+      color: #fff;
+    }
+    
+    .btn-prev:hover {
+      background: rgba(255,255,255,0.2);
+    }
+    
+    .btn-next {
+      background: linear-gradient(135deg, var(--chakra-blue), var(--chakra-blue-light));
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(26, 86, 219, 0.4);
+    }
+    
+    .btn-next:hover {
+      transform: translateY(-2px); /* Changed to translate instead of scale */
+      box-shadow: 0 6px 20px rgba(26, 86, 219, 0.6);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Mesh Gradient Background matching index.html -->
+  <div class="mesh-bg" id="meshBackground">
+    <div class="mesh-blob mesh-blob--saffron"></div>
+    <div class="mesh-blob mesh-blob--green"></div>
+    <div class="mesh-blob mesh-blob--blue"></div>
+  </div>
+
+  <header class="guide-header glass-card">
+    <h1>Interactive Election Guide</h1>
+    <a href="index.html" class="btn btn-secondary btn-sm">Exit Guide</a>
+  </header>
+
+  <div class="stepper-container">
+    <div class="stepper-line">
+      <div class="stepper-progress" id="stepperProgress"></div>
+    </div>
+    
+    <div class="step-item active" onclick="goToStep(0)">
+      <div class="step-circle">1</div>
+      <span class="step-label">Registration</span>
+    </div>
+    <div class="step-item" onclick="goToStep(1)">
+      <div class="step-circle">2</div>
+      <span class="step-label">Nominations</span>
+    </div>
+    <div class="step-item" onclick="goToStep(2)">
+      <div class="step-circle">3</div>
+      <span class="step-label">Campaigning</span>
+    </div>
+    <div class="step-item" onclick="goToStep(3)">
+      <div class="step-circle">4</div>
+      <span class="step-label">Voting Day</span>
+    </div>
+    <div class="step-item" onclick="goToStep(4)">
+      <div class="step-circle">5</div>
+      <span class="step-label">Results</span>
+    </div>
+  </div>
+
+  <main class="guide-content-area">
+    
+    <!-- Step 1 -->
+    <div class="guide-card glass-card active" id="card-0">
+      <div class="card-icon">📝</div>
+      <h2 class="card-title">Voter Registration</h2>
+      <p class="card-text">The foundation of a democracy is its voters. In India, anyone who is a citizen and above 18 years of age is eligible to vote, provided they are registered in the electoral roll.</p>
+      
+      <div class="interactive-grid">
+        <div class="info-box" style="border-left-color: var(--saffron);">
+          <h4>Form 6</h4>
+          <p>The application form to register as a new voter. Can be filled online via the ECI portal or offline.</p>
+        </div>
+        <div class="info-box" style="border-left-color: #fff;">
+          <h4>EPIC Card</h4>
+          <p>Electors Photo Identity Card. Your official ID issued by the Election Commission to cast your vote.</p>
+        </div>
+        <div class="info-box" style="border-left-color: var(--green-light);">
+          <h4>BLO Verification</h4>
+          <p>A Booth Level Officer will visit your address to verify your residency before issuing the card.</p>
+        </div>
+      </div>
+      
+      <div class="guide-controls">
+        <button class="btn-guide btn-prev" style="visibility: hidden;">Previous</button>
+        <button class="btn-guide btn-next" onclick="goToStep(1)">Next Step: Nominations ➔</button>
+      </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="guide-card glass-card" id="card-1">
+      <div class="card-icon">⚖️</div>
+      <h2 class="card-title">Code of Conduct & Nominations</h2>
+      <p class="card-text">Once the Election Commission announces the dates, the Model Code of Conduct (MCC) kicks in. Politicians then officially step forward to run for office.</p>
+      
+      <div class="interactive-grid">
+        <div class="info-box" style="border-left-color: var(--chakra-blue);">
+          <h4>Model Code of Conduct</h4>
+          <p>Rules that prevent the ruling party from misusing government machinery or announcing new policies to sway voters.</p>
+        </div>
+        <div class="info-box" style="border-left-color: var(--error);">
+          <h4>Filing Nominations</h4>
+          <p>Candidates submit their nomination papers to the Returning Officer along with a security deposit.</p>
+        </div>
+        <div class="info-box" style="border-left-color: var(--saffron);">
+          <h4>Affidavits</h4>
+          <p>Crucial step! Candidates must publicly declare their criminal records, assets, liabilities, and educational qualifications.</p>
+        </div>
+      </div>
+      
+      <div class="guide-controls">
+        <button class="btn-guide btn-prev" onclick="goToStep(0)">⬅ Previous</button>
+        <button class="btn-guide btn-next" onclick="goToStep(2)">Next Step: Campaigning ➔</button>
+      </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="guide-card glass-card" id="card-2">
+      <div class="card-icon">🎤</div>
+      <h2 class="card-title">The Campaign Trail</h2>
+      <p class="card-text">This is the most visible phase of elections. Parties and candidates have about two weeks to reach out to voters and convince them.</p>
+      
+      <div class="interactive-grid">
+        <div class="info-box" style="border-left-color: var(--green-light);">
+          <h4>Manifestos</h4>
+          <p>Official documents released by political parties detailing their promises and policies if elected.</p>
+        </div>
+        <div class="info-box" style="border-left-color: #fff;">
+          <h4>Expenditure Limits</h4>
+          <p>The ECI sets strict limits on how much a candidate can spend on their campaign to ensure a level playing field.</p>
+        </div>
+        <div class="info-box" style="border-left-color: var(--chakra-blue-light);">
+          <h4>The 48-Hour Silence</h4>
+          <p>All public campaigning must stop 48 hours before voting begins to give voters time to think peacefully.</p>
+        </div>
+      </div>
+      
+      <div class="guide-controls">
+        <button class="btn-guide btn-prev" onclick="goToStep(1)">⬅ Previous</button>
+        <button class="btn-guide btn-next" onclick="goToStep(3)">Next Step: Voting Day ➔</button>
+      </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="guide-card glass-card" id="card-3">
+      <div class="card-icon">🗳️</div>
+      <h2 class="card-title">Voting Day Process</h2>
+      <p class="card-text">The day millions exercise their democratic right. India uses Electronic Voting Machines (EVMs) to ensure fast and secure polling.</p>
+      
+      <div class="interactive-grid">
+        <div class="info-box" style="border-left-color: var(--saffron);">
+          <h4>Indelible Ink</h4>
+          <p>A special ink mark is applied to the voter's left index finger to prevent them from voting twice.</p>
+        </div>
+        <div class="info-box" style="border-left-color: var(--chakra-blue);">
+          <h4>EVM & VVPAT</h4>
+          <p>You press a button on the EVM, and the VVPAT prints a slip showing your vote for 7 seconds to verify accuracy.</p>
+        </div>
+        <div class="info-box" style="border-left-color: var(--error);">
+          <h4>NOTA</h4>
+          <p>None Of The Above. A button allowing voters to officially reject all contesting candidates.</p>
+        </div>
+      </div>
+      
+      <div class="guide-controls">
+        <button class="btn-guide btn-prev" onclick="goToStep(2)">⬅ Previous</button>
+        <button class="btn-guide btn-next" onclick="goToStep(4)">Next Step: Results ➔</button>
+      </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="guide-card glass-card" id="card-4">
+      <div class="card-icon">📊</div>
+      <h2 class="card-title">Results & Government Formation</h2>
+      <p class="card-text">After voting concludes across all phases, the EVMs are secured in strong rooms until Counting Day.</p>
+      
+      <div class="interactive-grid">
+        <div class="info-box" style="border-left-color: var(--green-light);">
+          <h4>Counting Day</h4>
+          <p>EVMs are unsealed in the presence of candidate representatives. Results are declared constituency by constituency.</p>
+        </div>
+        <div class="info-box" style="border-left-color: var(--chakra-blue-light);">
+          <h4>The Magic Number: 272</h4>
+          <p>In the Lok Sabha (543 seats), a party or coalition needs at least 272 seats to form a majority government.</p>
+        </div>
+        <div class="info-box" style="border-left-color: #fff;">
+          <h4>Oath Taking</h4>
+          <p>The President invites the majority leader to form the government and takes oath as the Prime Minister.</p>
+        </div>
+      </div>
+      
+      <div class="guide-controls">
+        <button class="btn-guide btn-prev" onclick="goToStep(3)">⬅ Previous</button>
+        <a href="index.html" class="btn-guide btn-next" style="text-decoration: none; text-align: center;">Finish & Enter Dashboard 🚀</a>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    let currentStep = 0;
+    const totalSteps = 5;
+    
+    function goToStep(step) {
+      const stepItems = document.querySelectorAll('.step-item');
+      const progressBar = document.getElementById('stepperProgress');
+      
+      // Update each step item by only changing class and circle text — never rebuild innerHTML
+      stepItems.forEach(function(el, index) {
+        el.classList.remove('active', 'completed');
+        var circle = el.querySelector('.step-circle');
+        
+        if (index < step) {
+          // Completed step — show checkmark
+          el.classList.add('completed');
+          circle.textContent = '\u2713'; // ✓
+        } else if (index === step) {
+          // Active step — show step number
+          el.classList.add('active');
+          circle.textContent = String(step + 1);
+        } else {
+          // Future step — show step number
+          circle.textContent = String(index + 1);
+        }
+      });
+
+      // Update progress bar
+      var progressPercentage = (step / (totalSteps - 1)) * 100;
+      progressBar.style.width = progressPercentage + '%';
+      
+      // Update visible card
+      document.querySelectorAll('.guide-card').forEach(function(card) {
+        card.classList.remove('active');
+      });
+      document.getElementById('card-' + step).classList.add('active');
+      
+      currentStep = step;
+    }
+  </script>
+</body>
+</html>
