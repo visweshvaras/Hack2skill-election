@@ -42,18 +42,34 @@ function initWarningBanner() {
 
 let LIVE_NEWS = [];
 
-async function fetchEndpointArray(endpoint) {
+/**
+ * Fetches data from a JSON endpoint with built-in timeout, signal management, and retry logic.
+ * @param {string} endpoint - The URL to fetch.
+ * @param {number} retries - Number of retry attempts.
+ * @returns {Promise<Array>}
+ */
+async function fetchEndpointArray(endpoint, retries = 2) {
   if (!endpoint) return [];
+  
   const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), 8000); // 8 seconds timeout
+  const id = setTimeout(() => controller.abort(), 8000);
+  
   try {
     const response = await fetch(endpoint, { signal: controller.signal });
     clearTimeout(id);
-    if (!response.ok) return [];
+    
+    if (!response.ok) {
+      if (retries > 0) return fetchEndpointArray(endpoint, retries - 1);
+      return [];
+    }
+    
     const data = await response.json();
-    return Array.isArray(data) ? data : [];
+    return Array.isArray(data) ? data : (data.data || data.results || []);
   } catch (error) {
     clearTimeout(id);
+    if (retries > 0 && error.name !== 'AbortError') {
+      return fetchEndpointArray(endpoint, retries - 1);
+    }
     return [];
   }
 }

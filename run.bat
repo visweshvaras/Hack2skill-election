@@ -29,11 +29,11 @@ if exist ".venv\Scripts\python.exe" (
 
 echo.
 echo [1/3] Starting Node.js API (Port 8787)...
-echo       Handling: News, Representatives, Integrity, ED Cases
+echo       Handling: Web Scraping, News, Vote Counting, Map Data, Representatives, Integrity
 start "NaagrikInfo - Node API" cmd /c "npm run api"
 
 echo [2/3] Starting Python Tracker (Port 5050)...
-echo       Handling: ECI Scraper, RSS Snapshots
+echo       Handling: Scheduled Background Snapshots, CSV Data Dumps
 if exist "python_tracker\app.py" (
     start "NaagrikInfo - Python Tracker" cmd /c "cd python_tracker && ..\%PYTHON_EXE% app.py"
 ) else (
@@ -41,7 +41,7 @@ if exist "python_tracker\app.py" (
 )
 
 echo [3/3] Starting Frontend Server (Port 8000)...
-echo       Serving: Glassmorphic Dashboard
+echo       Serving: Glassmorphic Dashboard, Interactive Live Map
 start "NaagrikInfo - Frontend" cmd /c "npm run dev"
 
 echo.
