@@ -44,12 +44,16 @@ let LIVE_NEWS = [];
 
 async function fetchEndpointArray(endpoint) {
   if (!endpoint) return [];
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), 8000); // 8 seconds timeout
   try {
-    const response = await fetch(endpoint);
+    const response = await fetch(endpoint, { signal: controller.signal });
+    clearTimeout(id);
     if (!response.ok) return [];
     const data = await response.json();
-    return toArrayPayload(data);
+    return Array.isArray(data) ? data : [];
   } catch (error) {
+    clearTimeout(id);
     return [];
   }
 }

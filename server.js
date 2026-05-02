@@ -4,6 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const { XMLParser } = require('fast-xml-parser');
 const cheerio = require('cheerio');
+const helmet = require('helmet');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 
 const app = express();
 const PORT = Number(process.env.PORT) || 8787;
@@ -15,6 +18,22 @@ const NIC_API_SECRET = process.env.NIC_API_SECRET || '';
 const NIC_MINISTRIES_ENDPOINT = process.env.NIC_MINISTRIES_ENDPOINT || '';
 const INDIA_STATES_GEOJSON_URL = process.env.INDIA_STATES_GEOJSON_URL
   || 'https://raw.githubusercontent.com/Subhash9325/GeoJson-Data-of-Indian-States/master/Indian_States';
+
+// Security and Efficiency Middlewares
+app.use(helmet({
+  contentSecurityPolicy: false // Disable CSP temporarily to avoid breaking frontend CDNs
+}));
+app.use(compression()); // Compress all responses for efficiency
+
+// Rate Limiting to prevent abuse on API routes
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 200, // Limit each IP to 200 requests per windowMs
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests from this IP, please try again after 15 minutes' }
+});
+app.use('/api/', apiLimiter);
 
 app.use(cors());
 app.use(express.json());
@@ -803,7 +822,7 @@ app.get('/api/vote-counting/state/:stateCode', async (req, res) => {
   }
 });
 
-if (process.env.NODE_ENV !== 'production' || !process.env.VERCEL) {
+if (process.env.NODE_ENV !== 'test' && (process.env.NODE_ENV !== 'production' || !process.env.VERCEL)) {
   app.listen(PORT, () => {
     console.log(`Live backend running on http://localhost:${PORT}`);
   });
