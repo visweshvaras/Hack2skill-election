@@ -35,12 +35,27 @@ A beautiful, data-driven dashboard utilizing our custom **"Event Horizon"** glas
 - **GSAP (GreenSock):** Industry-standard animation library powering the cinematic interactive guide.
 
 **Backend**
-- **Node.js (Express.js):** Primary API for data aggregation, serving the frontend, and real-time scraping (via Cheerio).
-- **Python (Flask):** Secondary tracking API providing automated news polling and Election Commission (ECI) result snapshots using Pandas.
+- **Node.js (Express.js):** Primary backend serving the frontend and performing real-time web scraping (using Cheerio) to aggregate data.
+- **Python (Flask):** Standalone tracking system using Pandas and BeautifulSoup for automated background scraping of news feeds and Election Commission (ECI) result tables.
 
 **Deployment**
 - **Google Cloud Run:** Fully containerized, serverless deployment.
 - **Google Cloud Build:** Automated CI/CD pipeline triggered from source.
+
+---
+
+## 🕷️ Data Collection Strategy: Web Scraping vs APIs
+
+In building NaagrikInfo, we made a strategic decision to utilize **Web Scraping** as our primary method of live data collection, rather than relying exclusively on official APIs. 
+
+### Why Web Scraping is Advantageous in This Context:
+
+1. **Accessibility of Public Data:** Official election commissions and government bodies often do not provide public, well-documented REST APIs for live results. Web scraping allows us to democratize this public data directly from their HTML result portals (e.g., `results.eci.gov.in`).
+2. **Cost-Effectiveness:** Commercial political data APIs or comprehensive news aggregation APIs can be prohibitively expensive for open-source or citizen-led projects. Scraping public pages and RSS feeds provides a zero-cost, sustainable alternative.
+3. **Granular Data Control:** APIs restrict you to the specific JSON structures the provider chooses to expose. Scraping gives us the flexibility to extract exactly what we need, including granular table data, edge-case statistics, and metadata that APIs often omit entirely.
+4. **Independent Rate Management:** While responsible scraping includes self-imposed rate limiting (our trackers run on 5-minute intervals), we are not bound by the strict daily request quotas or artificial paywalls often imposed by free-tier APIs.
+
+Our architecture is built for resilience. It gracefully handles scraping failures by falling back to bundled static datasets (`data/` directory) to ensure the platform remains functional even if a source website temporarily changes its layout.
 
 ---
 
@@ -96,9 +111,9 @@ Access the tracking API at `http://localhost:5050`
 
 ## 📌 Roadmap & Future Enhancements
 
-- [ ] **Production APIs:** Fully transition from localized JSON data bundles to live, authorized News and Election APIs.
+- [ ] **Advanced Scraping Resilience:** Implement adaptive DOM parsing to automatically handle layout changes on source government websites without manual code updates.
 - [ ] **Advanced Metrics:** Refine the logic algorithms that drive the Party Integrity graphs.
-- [ ] **Global Search Expansion:** Enable full-text searching across all bundled and fetched datasets.
+- [ ] **Global Search Expansion:** Enable full-text searching across all bundled and scraped datasets.
 - [ ] **Mobile Touch Optimizations:** Enhance the GSAP interactive guide with native swipe gestures for mobile users.
 
 ---
