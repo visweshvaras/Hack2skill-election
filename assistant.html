@@ -3,477 +3,809 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive Election Guide | NaagrikInfo</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="index.css">
+  <title>Voter ID Journey | NaagrikInfo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: var(--bg-main);
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      font-family: var(--font-body);
-      overflow-x: hidden;
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body, html {
+      width: 100%; height: 100%; overflow: hidden;
+      font-family: 'Inter', sans-serif; background: #F5F2EB; color: #1A1A1A;
     }
+    h1, h2, h3, h4 { font-family: 'Playfair Display', serif; font-weight: 700; color: #1A1A1A; }
+
+    .nav-bar { position: fixed; top: 0; left: 0; width: 100%; padding: 30px 50px; display: flex; justify-content: space-between; align-items: center; z-index: 1000; pointer-events: none; }
+    .nav-logo, .nav-close { text-decoration: none; color: #1A1A1A; pointer-events: auto; transition: opacity 0.3s; }
+    .nav-logo { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 1.5rem; }
+    .nav-close { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 500; }
+    .nav-logo:hover, .nav-close:hover { opacity: 0.6; }
+
+    .book-container { position: relative; width: 100vw; height: 100vh; overflow: hidden; perspective: 2000px; transform-style: preserve-3d; }
+    .page { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; visibility: hidden; opacity: 0; }
+    .page-content { width: 100%; height: 100%; max-width: 1400px; margin: 0 auto; display: flex; padding: 100px 50px; perspective: 1000px; }
     
-    h1, h2, h3, h4 {
-      font-family: var(--font-heading);
-    }
+    .split { display: flex; width: 100%; height: 100%; align-items: center; }
+    .text-side { flex: 1; padding: 40px 80px; display: flex; flex-direction: column; justify-content: center; }
+    .image-side { flex: 1; display: flex; justify-content: center; align-items: center; position: relative; transform-style: preserve-3d; }
+
+    .chapter-num { font-size: 1.2rem; font-weight: 500; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 2vh; opacity: 0.6; }
+    .page h2 { font-size: clamp(2.5rem, 4vw, 4rem); line-height: 1.1; margin-bottom: 3vh; }
+    .page p { font-size: clamp(1.1rem, 1.5vw, 1.3rem); line-height: 1.8; max-width: 500px; color: #333; margin-bottom: 5vh; }
+
+    .btn { display: inline-block; padding: 16px 35px; border-radius: 40px; background: #1A1A1A; color: #fff; text-decoration: none; font-size: 1rem; font-weight: 500; border: none; cursor: pointer; transition: background 0.3s, transform 0.3s, box-shadow 0.3s; align-self: flex-start; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+    .btn:hover { background: #333; transform: scale(1.05) translateY(-2px); box-shadow: 0 15px 25px rgba(0,0,0,0.2); }
+    .btn-secondary { background: transparent; color: #1A1A1A; border: 1px solid #1A1A1A; margin-right: 15px; box-shadow: none; }
+    .btn-secondary:hover { background: rgba(0,0,0,0.05); transform: scale(1.05) translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+    .page-controls { display: flex; margin-top: auto; }
+
+    .cover-content { text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; width: 100%; height: 100%; }
+    .cover-content h1 { font-size: clamp(4rem, 8vw, 8rem); line-height: 1; margin-bottom: 20px; letter-spacing: -2px; }
+    .cover-content p { font-size: 1.5rem; color: #555; margin-bottom: 50px; max-width: 600px; }
+
+    .art-container { width: 100%; max-width: 550px; aspect-ratio: 1 / 1; display: flex; justify-content: center; align-items: center; position: relative; transform-style: preserve-3d; }
+    .art-svg { width: 100%; height: 100%; filter: drop-shadow(0 20px 40px rgba(0,0,0,0.1)); transform-style: preserve-3d; overflow: visible; }
+
+    /* Page Colors */
+    #page-0 { background-color: #F5F2EB; } 
+    #page-1 { background-color: #FDECD4; } 
+    #page-2 { background-color: #E8F0F3; } 
+    #page-3 { background-color: #F9E8E8; } 
+    #page-4 { background-color: #E8F3E8; } 
+    #page-5 { background-color: #F0E8F3; } 
+    #page-6 { background-color: #E6F3E6; } 
+    #page-7 { background-color: #EBE6F3; }
+    #page-8 { background-color: #F5F2EB; } 
+    #page-9 { background-color: #FDECD4; }
+    #page-10 { background-color: #1A1A1A; color: #fff; }
+    #page-10 h2 { color: #fff; } #page-10 .chapter-num { color: rgba(255,255,255,0.5); }
     
-    .guide-header {
-      padding: var(--space-lg) var(--space-2xl);
-      background: rgba(0,0,0,0.3);
-      border-bottom: 1px solid var(--glass-border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    
-    .guide-header h1 {
-      margin: 0;
-      font-size: var(--fs-xl);
-      background: linear-gradient(90deg, #FF9933, #FFFFFF, #138808);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      color: transparent;
-    }
-    
-    .stepper-container {
-      padding: var(--space-xl) var(--space-2xl);
-      display: flex;
-      justify-content: space-between;
-      position: relative;
-      max-width: 1000px;
-      margin: 0 auto;
-      width: 100%;
-    }
-    
-    .stepper-line {
-      position: absolute;
-      top: 20px; /* align to center of 40px circle */
-      left: 60px;
-      right: 60px;
-      height: 4px;
-      background: rgba(255,255,255,0.15); /* increased contrast */
-      z-index: 1;
-      border-radius: 2px;
-    }
-    
-    .stepper-progress {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      background: linear-gradient(90deg, var(--chakra-blue), var(--chakra-blue-light));
-      width: 0%;
-      transition: width 0.5s ease;
-      border-radius: 2px;
-    }
-    
-    .step-item {
-      position: relative;
-      z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: var(--space-sm);
-      cursor: pointer;
-    }
-    
-    .step-circle {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: var(--bg-card);
-      border: 2px solid rgba(255,255,255,0.2);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      transition: all 0.3s ease;
-      font-size: var(--fs-lg);
-    }
-    
-    .step-label {
-      font-size: var(--fs-sm);
-      color: var(--text-secondary);
-      transition: color 0.3s ease;
-      text-align: center;
-      width: 90px;
-      white-space: nowrap; /* prevent label wrapping */
-    }
-    
-    .step-item.active .step-circle {
-      border-color: var(--chakra-blue-light);
-      background: var(--chakra-blue);
-      color: #fff;
-      box-shadow: 0 0 15px var(--chakra-blue);
-    }
-    
-    .step-item.active .step-label {
-      color: #fff;
-      font-weight: bold;
-    }
-    
-    .step-item.completed .step-circle {
-      background: var(--green-light);
-      border-color: var(--green-light);
-      color: #000;
-    }
-    
-    .guide-content-area {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: var(--space-xl);
-      margin-top: var(--space-2xl); /* Added margin-top to separate from stepper */
-    }
-    
-    .guide-card {
-      max-width: 900px; /* Increased max-width */
-      width: 100%;
-      min-height: 400px;
-      padding: var(--space-3xl); /* Increased padding */
-      position: relative;
-      display: none;
-      animation: fadeInSlide 0.5s ease forwards;
-      border-radius: var(--radius-xl); /* Increased border-radius */
-      background: rgba(10, 14, 39, 0.6); /* Slightly darker background for contrast */
-      border: 1px solid rgba(255,255,255,0.1);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.5); /* Stronger shadow */
-    }
-    
-    .guide-card.active {
-      display: flex;
-      flex-direction: column;
-    }
-    
-    @keyframes fadeInSlide {
-      from { opacity: 0; transform: translateY(20px); } /* Changed to slide up instead of left/right */
-      to { opacity: 1; transform: translateY(0); }
-    }
-    
-    .card-icon {
-      font-size: 4rem;
-      margin-bottom: var(--space-md);
-    }
-    
-    .card-title {
-      font-size: var(--fs-2xl);
-      margin-bottom: var(--space-md);
-      color: var(--chakra-blue-light);
-    }
-    
-    .card-text {
-      font-size: var(--fs-lg);
-      line-height: 1.6;
-      color: var(--text-secondary);
-      margin-bottom: var(--space-xl);
-    }
-    
-    .interactive-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr); /* always 3 columns */
-      grid-auto-rows: 1fr;
-      gap: var(--space-lg);
-      margin-bottom: var(--space-2xl);
-    }
-    
-    @media (max-width: 700px) {
-      .interactive-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-    
-    .info-box {
-      background: rgba(0,0,0,0.3);
-      padding: var(--space-md);
-      border-radius: var(--radius-md);
-      border-left: 4px solid var(--saffron);
-      transition: transform 0.2s;
-    }
-    
-    .info-box:hover {
-      transform: translateY(-5px);
-    }
-    
-    .info-box h4 {
-      margin-top: 0;
-      margin-bottom: var(--space-xs);
-      color: #fff;
-    }
-    
-    .info-box p {
-      margin: 0;
-      font-size: var(--fs-sm);
-      color: var(--text-secondary);
-    }
-    
-    .guide-controls {
-      display: flex;
-      justify-content: space-between;
-      margin-top: auto;
-      padding-top: var(--space-xl);
-      border-top: 1px solid var(--glass-border);
-    }
-    
-    .btn-guide {
-      padding: var(--space-md) var(--space-xl);
-      border-radius: var(--radius-full);
-      font-size: var(--fs-base);
-      font-weight: bold;
-      cursor: pointer;
-      border: none;
-      transition: all 0.3s;
-    }
-    
-    .btn-prev {
-      background: rgba(255,255,255,0.1);
-      color: #fff;
-    }
-    
-    .btn-prev:hover {
-      background: rgba(255,255,255,0.2);
-    }
-    
-    .btn-next {
-      background: linear-gradient(135deg, var(--chakra-blue), var(--chakra-blue-light));
-      color: #fff;
-      box-shadow: 0 4px 15px rgba(26, 86, 219, 0.4);
-    }
-    
-    .btn-next:hover {
-      transform: translateY(-2px); /* Changed to translate instead of scale */
-      box-shadow: 0 6px 20px rgba(26, 86, 219, 0.6);
+    .quiz-layout { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 800px; margin: 0 auto; text-align: center; }
+    .quiz-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 40px; border-radius: 20px; width: 100%; margin-bottom: 30px; display: none; }
+    .quiz-question { font-family: 'Playfair Display', serif; font-size: 2rem; margin-bottom: 30px; line-height: 1.3; }
+    .quiz-options { display: flex; flex-direction: column; gap: 15px; }
+    .quiz-btn { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 20px; border-radius: 12px; font-size: 1.1rem; cursor: pointer; transition: all 0.3s; text-align: left; }
+    .quiz-btn:hover { background: rgba(255,255,255,0.1); padding-left: 25px; }
+    .quiz-btn.correct { background: rgba(30, 215, 96, 0.2); border-color: #1ED760; }
+    .quiz-btn.wrong { background: rgba(230, 57, 70, 0.2); border-color: #e63946; }
+    #quiz-results { display: none; font-family: 'Playfair Display', serif; font-size: 2.5rem; margin-top: 40px; }
+
+    .progress-bar-container { position: absolute; bottom: 40px; left: 50px; right: 50px; height: 2px; background: rgba(0,0,0,0.1); z-index: 100; }
+    .progress-bar-fill { height: 100%; background: #1A1A1A; width: 0%; transition: width 0.5s ease-out; }
+
+    @media (max-width: 900px) {
+      .split { flex-direction: column-reverse; justify-content: center; }
+      .split.reverse { flex-direction: column-reverse; }
+      .text-side { padding: 20px; text-align: center; align-items: center; }
+      .image-side { flex: 0.5; margin-bottom: 20px; }
+      .art-container { max-width: 350px; }
+      .page-controls { justify-content: center; }
+      .nav-bar { padding: 20px; }
+      .progress-bar-container { left: 20px; right: 20px; bottom: 20px; }
     }
   </style>
 </head>
 <body>
 
-  <!-- Mesh Gradient Background matching index.html -->
-  <div class="mesh-bg" id="meshBackground">
-    <div class="mesh-blob mesh-blob--saffron"></div>
-    <div class="mesh-blob mesh-blob--green"></div>
-    <div class="mesh-blob mesh-blob--blue"></div>
+  <nav class="nav-bar">
+    <a href="#" class="nav-logo">NaagrikInfo</a>
+    <a href="index.html" class="nav-close">Close Book</a>
+  </nav>
+
+  <div class="progress-bar-container">
+    <div class="progress-bar-fill" id="progressBar"></div>
   </div>
 
-  <header class="guide-header glass-card">
-    <h1>Interactive Election Guide</h1>
-    <a href="index.html" class="btn btn-secondary btn-sm">Exit Guide</a>
-  </header>
-
-  <div class="stepper-container">
-    <div class="stepper-line">
-      <div class="stepper-progress" id="stepperProgress"></div>
-    </div>
+  <div class="book-container">
     
-    <div class="step-item active" onclick="goToStep(0)">
-      <div class="step-circle">1</div>
-      <span class="step-label">Registration</span>
+    <!-- Cover -->
+    <div class="page" id="page-0">
+      <div class="page-content">
+        <div class="cover-content">
+          <h1>The Franchise</h1>
+          <p>A cinematic journey: The constitutional right and responsibility of becoming a registered voter.</p>
+          <button class="btn" onclick="goToPage(1)">Open Book</button>
+        </div>
+      </div>
     </div>
-    <div class="step-item" onclick="goToStep(1)">
-      <div class="step-circle">2</div>
-      <span class="step-label">Nominations</span>
+
+    <!-- Chapter 1 -->
+    <div class="page" id="page-1">
+      <div class="page-content split">
+        <div class="text-side">
+          <span class="chapter-num">Chapter 01</span>
+          <h2>The Milestone</h2>
+          <p>The right to vote is the cornerstone of democratic participation. For Aryan, turning eighteen isn't just a birthday—it marks his induction as an active citizen, granting him the power to shape the nation's future.</p>
+          <div class="page-controls">
+            <button class="btn btn-secondary" onclick="goToPage(0)">Back</button>
+            <button class="btn" onclick="goToPage(2)">Next Page</button>
+          </div>
+        </div>
+        <div class="image-side">
+          <div class="art-container interactive-3d">
+            <svg viewBox="0 0 400 400" class="art-svg">
+              <defs>
+                <clipPath id="clip-1"><circle cx="200" cy="200" r="180"/></clipPath>
+              </defs>
+              <circle cx="200" cy="200" r="180" fill="#ECA26C" opacity="0.3"/>
+              
+              <g clip-path="url(#clip-1)">
+                <!-- Glowing Box -->
+                <g transform="translate(200, 150)">
+                  <g class="s1-box">
+                    <rect x="-30" y="-40" width="60" height="80" fill="#fff" rx="5" filter="drop-shadow(0 5px 15px rgba(236,162,108,0.5))"/>
+                    <line x1="-15" y1="-20" x2="15" y2="-20" stroke="#ECA26C" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="-15" y1="0" x2="15" y2="0" stroke="#ECA26C" stroke-width="4" stroke-linecap="round"/>
+                    <line x1="-15" y1="20" x2="5" y2="20" stroke="#ECA26C" stroke-width="4" stroke-linecap="round"/>
+                  </g>
+                </g>
+                <!-- Aryan -->
+                <g transform="translate(200, 420)">
+                  <g class="s1-aryan">
+                    <path d="M -70 0 C -70 -100, -50 -180, 0 -180 C 50 -180, 70 -100, 70 0 Z" fill="#1A56DB"/>
+                    <path d="M -15 -180 L 15 -180 L 20 -130 L -20 -130 Z" fill="#D2A679"/> 
+                    <g class="s1-head" transform="translate(0, -200)">
+                      <rect x="-35" y="-40" width="70" height="80" rx="35" fill="#D2A679"/>
+                      <path d="M -40 -10 C -40 -60, -30 -60, 0 -70 C 30 -60, 40 -60, 40 -10 C 40 -30, 30 -50, 0 -50 C -30 -50, -40 -30, -40 -10 Z" fill="#2B2B2B"/>
+                      <circle cx="-15" cy="-5" r="4" fill="#2B2B2B"/>
+                      <circle cx="15" cy="-5" r="4" fill="#2B2B2B"/>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="step-item" onclick="goToStep(2)">
-      <div class="step-circle">3</div>
-      <span class="step-label">Campaigning</span>
+
+    <!-- Chapter 2 -->
+    <div class="page" id="page-2">
+      <div class="page-content split reverse">
+        <div class="image-side">
+          <div class="art-container interactive-3d">
+            <svg viewBox="0 0 400 400" class="art-svg">
+              <defs>
+                <clipPath id="clip-2"><circle cx="200" cy="200" r="180"/></clipPath>
+              </defs>
+              <circle cx="200" cy="200" r="180" fill="#A8C6D1" opacity="0.3"/>
+              <g clip-path="url(#clip-2)">
+                <rect class="s2-desk" x="20" y="300" width="360" height="100" fill="#4A4A4A" rx="10"/>
+                <g transform="translate(200, 420)">
+                  <g class="s2-aryan">
+                    <path d="M -80 0 C -80 -120, -60 -220, 0 -220 C 60 -220, 80 -120, 80 0 Z" fill="#F0F0F0"/> 
+                    <g transform="translate(0, -240)">
+                      <rect x="-35" y="-40" width="70" height="80" rx="35" fill="#D2A679"/>
+                      <path d="M -40 -10 C -40 -60, -30 -60, 0 -70 C 30 -60, 40 -60, 40 -10 C 40 -30, 30 -50, 0 -50 C -30 -50, -40 -30, -40 -10 Z" fill="#2B2B2B"/>
+                    </g>
+                    <g class="s2-arm-l" transform="translate(-50, -180)">
+                      <path d="M 0 0 C -30 30, -30 70, 10 90" fill="none" stroke="#F0F0F0" stroke-width="22" stroke-linecap="round"/>
+                      <circle cx="10" cy="90" r="11" fill="#D2A679"/>
+                    </g>
+                    <g class="s2-arm-r" transform="translate(50, -180)">
+                      <path d="M 0 0 C 30 30, 30 70, -10 90" fill="none" stroke="#F0F0F0" stroke-width="22" stroke-linecap="round"/>
+                      <circle cx="-10" cy="90" r="11" fill="#D2A679"/>
+                    </g>
+                  </g>
+                </g>
+                <g transform="translate(200, 290)">
+                  <g class="s2-laptop">
+                    <rect x="-90" y="-110" width="180" height="110" fill="#EAEAEA" rx="5"/>
+                    <rect class="s2-screen" x="-80" y="-100" width="160" height="90" fill="#1A56DB"/>
+                    <rect x="-100" y="0" width="200" height="12" fill="#C4C4C4" rx="6"/>
+                    <rect class="s2-form" x="-40" y="-80" width="80" height="10" fill="#fff" opacity="0.8" rx="2"/>
+                    <rect class="s2-form" x="-40" y="-60" width="60" height="6" fill="#fff" opacity="0.5" rx="3"/>
+                    <rect class="s2-form" x="-40" y="-45" width="70" height="6" fill="#fff" opacity="0.5" rx="3"/>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+        <div class="text-side">
+          <span class="chapter-num">Chapter 02</span>
+          <h2>The Registration</h2>
+          <p>The bureaucratic journey commences at the Election Commission's portal. By meticulously filing Form 6, the designated application for new voters, Aryan officially requests his inclusion in the electoral roll.</p>
+          <div class="page-controls">
+            <button class="btn btn-secondary" onclick="goToPage(1)">Back</button>
+            <button class="btn" onclick="goToPage(3)">Next Page</button>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="step-item" onclick="goToStep(3)">
-      <div class="step-circle">4</div>
-      <span class="step-label">Voting Day</span>
+
+    <!-- Chapter 3 -->
+    <div class="page" id="page-3">
+      <div class="page-content split">
+        <div class="text-side">
+          <span class="chapter-num">Chapter 03</span>
+          <h2>The Authentication</h2>
+          <p>Democracy relies on verifiable identity. Aryan submits his passport photograph and Aadhaar card, providing the necessary demographic and residential proof to authenticate his constituency alignment.</p>
+          <div class="page-controls">
+            <button class="btn btn-secondary" onclick="goToPage(2)">Back</button>
+            <button class="btn" onclick="goToPage(4)">Next Page</button>
+          </div>
+        </div>
+        <div class="image-side">
+          <div class="art-container interactive-3d">
+            <svg viewBox="0 0 400 400" class="art-svg">
+              <defs>
+                <clipPath id="clip-3"><circle cx="200" cy="200" r="180"/></clipPath>
+              </defs>
+              <circle cx="200" cy="200" r="180" fill="#E5B2B2" opacity="0.3"/>
+              <g clip-path="url(#clip-3)">
+                <g transform="translate(200, 200)">
+                  <g class="s3-card-wrapper">
+                    <g class="s3-card">
+                      <rect x="-110" y="-70" width="220" height="140" fill="#fff" rx="10" filter="drop-shadow(0 15px 25px rgba(0,0,0,0.1))"/>
+                      <rect class="s3-photo" x="-90" y="-40" width="60" height="70" fill="#EAEAEA" rx="5"/>
+                      <circle class="s3-photo-head" cx="-60" cy="-15" r="18" fill="#D2A679"/>
+                      <path class="s3-photo-body" d="M -80 30 C -80 10, -40 10, -40 30 Z" fill="#1A56DB"/>
+                      <rect class="s3-line1" x="-10" y="-30" width="100" height="12" fill="#1A1A1A" rx="4"/>
+                      <rect class="s3-line2" x="-10" y="-10" width="80" height="8" fill="#A0A0A0" rx="4"/>
+                      <rect class="s3-line3" x="-10" y="5" width="60" height="8" fill="#A0A0A0" rx="4"/>
+                      <rect class="s3-qr" x="70" y="40" width="30" height="30" fill="#EAEAEA" rx="5"/> 
+                    </g>
+                    <line class="s3-scanner" x1="-130" y1="0" x2="140" y2="0" stroke="#1ED760" stroke-width="6" opacity="0.8" filter="drop-shadow(0 0 8px #1ED760)"/>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="step-item" onclick="goToStep(4)">
-      <div class="step-circle">5</div>
-      <span class="step-label">Results</span>
+
+    <!-- Chapter 4 -->
+    <div class="page" id="page-4">
+      <div class="page-content split reverse">
+        <div class="image-side">
+          <div class="art-container interactive-3d">
+            <svg viewBox="0 0 400 400" class="art-svg">
+              <defs>
+                <clipPath id="clip-4"><circle cx="200" cy="200" r="180"/></clipPath>
+              </defs>
+              <circle cx="200" cy="200" r="180" fill="#B7D3B7" opacity="0.3"/>
+              <g clip-path="url(#clip-4)">
+                <g transform="translate(0,0)">
+                  <g class="s4-door">
+                    <rect x="20" y="20" width="160" height="380" fill="#8C6A50"/>
+                    <rect x="30" y="30" width="140" height="370" fill="#7A5A40"/>
+                  </g>
+                </g>
+                <g transform="translate(100, 260)">
+                  <g class="s4-aryan">
+                     <path d="M -35 140 L -35 60 C -35 20, 35 20, 35 60 L 35 140 Z" fill="#1A56DB"/>
+                     <g class="s4-aryan-head">
+                       <rect x="-25" y="-40" width="50" height="60" rx="25" fill="#D2A679"/>
+                       <path d="M -30 -15 C -30 -50, -20 -50, 0 -55 C 20 -50, 30 -50, 30 -15 C 30 -25, 20 -40, 0 -40 C -20 -40, -30 -25, -30 -15 Z" fill="#2B2B2B"/>
+                     </g>
+                  </g>
+                </g>
+                <g transform="translate(280, 260)">
+                  <g class="s4-blo">
+                     <path d="M -45 140 L -45 40 C -45 0, 45 0, 45 40 L 45 140 Z" fill="#ECA26C"/> 
+                     <g transform="translate(0, -50)">
+                        <rect x="-25" y="-25" width="50" height="55" rx="25" fill="#A06A45"/>
+                        <path d="M -35 -15 C -35 -45, 35 -45, 35 -15 Z" fill="#1A1A1A"/> 
+                        <rect x="-40" y="-15" width="80" height="6" fill="#1A1A1A" rx="3"/>
+                     </g>
+                     <rect class="s4-board" x="-70" y="30" width="60" height="80" fill="#A0A0A0" rx="3" transform="rotate(15)"/>
+                     <rect class="s4-paper" x="-65" y="35" width="50" height="70" fill="#fff" rx="2" transform="rotate(15)"/>
+                     <g class="s4-arm" transform="translate(25, 10)">
+                        <path d="M 0 0 C -20 20, -50 40, -60 40" fill="none" stroke="#ECA26C" stroke-width="18" stroke-linecap="round"/>
+                        <path d="M -60 40 L -70 55" stroke="#1A1A1A" stroke-width="5"/> 
+                     </g>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+        <div class="text-side">
+          <span class="chapter-num">Chapter 04</span>
+          <h2>The Verification</h2>
+          <p>To uphold electoral integrity, a Booth Level Officer (BLO) performs a physical ground verification. This rigorous audit ensures residency claims are factual, safeguarding the system against fraudulent entries.</p>
+          <div class="page-controls">
+            <button class="btn btn-secondary" onclick="goToPage(3)">Back</button>
+            <button class="btn" onclick="goToPage(5)">Next Page</button>
+          </div>
+        </div>
+      </div>
     </div>
+
+    <!-- Chapter 5 -->
+    <div class="page" id="page-5">
+      <div class="page-content split">
+        <div class="text-side">
+          <span class="chapter-num">Chapter 05</span>
+          <h2>The Credential</h2>
+          <p>The administrative checks conclude with the issuance of the Electors Photo Identity Card (EPIC). It arrives not merely as an identity document, but as a tangible instrument of his democratic power.</p>
+          <div class="page-controls">
+            <button class="btn btn-secondary" onclick="goToPage(4)">Back</button>
+            <button class="btn" onclick="goToPage(6)">Next Page</button>
+          </div>
+        </div>
+        <div class="image-side">
+          <div class="art-container interactive-3d">
+            <svg viewBox="0 0 400 400" class="art-svg">
+              <defs>
+                <clipPath id="clip-5"><circle cx="200" cy="200" r="180"/></clipPath>
+              </defs>
+              <circle cx="200" cy="200" r="180" fill="#D7C4E1" opacity="0.3"/>
+              <g clip-path="url(#clip-5)">
+                <g transform="translate(200, 200)">
+                  <g class="s5-epic-wrap">
+                     <g class="s5-epic">
+                        <rect x="-120" y="-75" width="240" height="150" fill="#FFFFFF" rx="10" filter="drop-shadow(0 20px 30px rgba(0,0,0,0.15))"/>
+                        <rect x="-120" y="-75" width="50" height="150" fill="#1A56DB" rx="10"/>
+                        <rect x="-80" y="-75" width="10" height="150" fill="#1A56DB"/> 
+                        <rect x="-60" y="-40" width="120" height="15" fill="#1A1A1A" rx="4"/>
+                        <rect x="-60" y="-15" width="90" height="8" fill="#A0A0A0" rx="4"/>
+                        <rect x="-60" y="5" width="70" height="8" fill="#A0A0A0" rx="4"/>
+                        <circle cx="80" cy="0" r="30" fill="#ECA26C"/> 
+                        <g opacity="0.4">
+                          <path class="s5-shine" d="M -150 -100 L -100 -100 L -50 100 L -100 100 Z" fill="#fff"/>
+                        </g>
+                     </g>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chapter 6 -->
+    <div class="page" id="page-6">
+      <div class="page-content split reverse">
+        <div class="image-side">
+          <div class="art-container interactive-3d">
+            <svg viewBox="0 0 400 400" class="art-svg">
+              <defs>
+                <clipPath id="clip-6"><circle cx="200" cy="200" r="180"/></clipPath>
+              </defs>
+              <circle cx="200" cy="200" r="180" fill="#E6F3E6" opacity="0.3"/>
+              <g clip-path="url(#clip-6)">
+                <path class="s6-road" d="M 0 350 C 150 350, 250 250, 400 250 L 400 400 L 0 400 Z" fill="#C4C4C4"/>
+                <g transform="translate(300, 250)">
+                  <g class="s6-station">
+                     <rect x="-60" y="-100" width="120" height="100" fill="#EAEAEA" rx="5"/>
+                     <polygon points="-70,-100 70,-100 0,-150" fill="#ECA26C"/>
+                     <rect x="-15" y="-40" width="30" height="40" fill="#4A4A4A"/>
+                     <rect x="-40" y="-70" width="20" height="25" fill="#A8C6D1"/>
+                     <rect x="20" y="-70" width="20" height="25" fill="#A8C6D1"/>
+                  </g>
+                </g>
+                <g transform="translate(130, 310)">
+                  <g class="s6-aryan">
+                    <g class="s6-leg-l" transform="translate(-15, 0)"><path d="M 0 0 L 0 40" stroke="#1A1A1A" stroke-width="14" stroke-linecap="round"/></g>
+                    <g class="s6-leg-r" transform="translate(15, 0)"><path d="M 0 0 L 0 40" stroke="#1A1A1A" stroke-width="14" stroke-linecap="round"/></g>
+                    <path d="M -30 -80 C -30 -110, 30 -110, 30 -80 L 30 10 L -30 10 Z" fill="#1A56DB"/>
+                    <g transform="translate(0, -95)">
+                      <rect x="-20" y="-20" width="40" height="45" rx="20" fill="#D2A679"/>
+                      <path d="M -25 -5 C -25 -35, -15 -35, 0 -40 C 15 -35, 25 -35, 25 -5 C 25 -15, 15 -30, 0 -30 C -15 -30, -25 -15, -25 -5 Z" fill="#2B2B2B"/>
+                    </g>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+        <div class="text-side">
+          <span class="chapter-num">Chapter 06</span>
+          <h2>The Journey</h2>
+          <p>With his EPIC secured, Aryan embarks on his civic pilgrimage to the designated polling station. The physical journey represents the mobilization of the electorate to participate in the democratic mandate.</p>
+          <div class="page-controls">
+            <button class="btn btn-secondary" onclick="goToPage(5)">Back</button>
+            <button class="btn" onclick="goToPage(7)">Next Page</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chapter 7 -->
+    <div class="page" id="page-7">
+      <div class="page-content split">
+        <div class="text-side">
+          <span class="chapter-num">Chapter 07</span>
+          <h2>The Indelible Mark</h2>
+          <p>Before accessing the ballot, a polling official applies indelible ink to Aryan's left forefinger. This crucial security measure prevents electoral fraud and double voting, serving as a proud emblem of civic duty.</p>
+          <div class="page-controls">
+            <button class="btn btn-secondary" onclick="goToPage(6)">Back</button>
+            <button class="btn" onclick="goToPage(8)">Next Page</button>
+          </div>
+        </div>
+        <div class="image-side">
+          <div class="art-container interactive-3d">
+            <svg viewBox="0 0 400 400" class="art-svg">
+              <defs>
+                <clipPath id="clip-7"><circle cx="200" cy="200" r="180"/></clipPath>
+              </defs>
+              <circle cx="200" cy="200" r="180" fill="#EBE6F3" opacity="0.3"/>
+              <g clip-path="url(#clip-7)">
+                <g transform="translate(180, 360)">
+                  <g class="s7-aryan-hand">
+                     <path d="M -25 -180 L 25 -180 L 25 0 L -25 0 Z" fill="#D2A679" rx="25"/>
+                     <path d="M -25 -180 C -25 -215, 25 -215, 25 -180" fill="#D2A679"/>
+                     <path d="M -12 -190 C -12 -205, 12 -205, 12 -190 L 12 -165 C 12 -155, -12 -155, -12 -165 Z" fill="#EAEAEA" opacity="0.5"/>
+                     <path d="M -80 0 L 80 0 L 100 120 L -100 120 Z" fill="#D2A679"/>
+                     <path class="s7-ink" d="M -6 -200 C -6 -210, 6 -210, 6 -200 L 6 -140 C 6 -130, -6 -130, -6 -140 Z" fill="#3A2D56"/>
+                  </g>
+                </g>
+                <g transform="translate(260, 100)">
+                  <g class="s7-marker-arm">
+                     <rect x="-15" y="-100" width="30" height="120" fill="#EAEAEA" rx="8" transform="rotate(-25)"/>
+                     <polygon points="-15,20 15,20 0,45" fill="#3A2D56" transform="rotate(-25)"/>
+                     <circle cx="25" cy="-25" r="40" fill="#A06A45"/>
+                     <path d="M 0 -35 L -40 -35 C -55 -35, -55 -15, -40 -15 L 0 -15 Z" fill="#A06A45"/>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chapter 8 -->
+    <div class="page" id="page-8">
+      <div class="page-content split reverse">
+        <div class="image-side">
+          <div class="art-container interactive-3d">
+            <svg viewBox="0 0 400 400" class="art-svg">
+              <defs>
+                <clipPath id="clip-8"><circle cx="200" cy="200" r="180"/></clipPath>
+              </defs>
+              <circle cx="200" cy="200" r="180" fill="#F5F2EB" opacity="0.3"/>
+              <g clip-path="url(#clip-8)">
+                <g transform="translate(200, 200)">
+                  <g class="s8-evm">
+                     <rect x="-120" y="-180" width="240" height="360" fill="#EAEAEA" rx="15" filter="drop-shadow(0 15px 25px rgba(0,0,0,0.15))"/>
+                     <rect x="-100" y="-140" width="120" height="50" fill="#C4C4C4" rx="5"/>
+                     <circle class="s8-btn" cx="60" cy="-115" r="18" fill="#4A90E2"/>
+                     <circle class="s8-light" cx="105" cy="-115" r="12" fill="#333"/>
+                     
+                     <rect x="-100" y="-70" width="120" height="50" fill="#C4C4C4" rx="5"/>
+                     <circle cx="60" cy="-45" r="18" fill="#4A90E2"/>
+                     <circle cx="105" cy="-45" r="12" fill="#333"/>
+                     
+                     <rect x="-100" y="0" width="120" height="50" fill="#C4C4C4" rx="5"/>
+                     <circle cx="60" cy="25" r="18" fill="#4A90E2"/>
+                     <circle cx="105" cy="25" r="12" fill="#333"/>
+                     
+                     <g transform="translate(-180, 0)">
+                       <g class="s8-slip">
+                          <rect x="0" y="-60" width="50" height="100" fill="#fff" filter="drop-shadow(0 5px 5px rgba(0,0,0,0.1))"/>
+                       </g>
+                     </g>
+                     
+                     <g transform="translate(190, -115)">
+                       <g class="s8-hand">
+                          <path d="M 0 0 C -50 -25, -100 0, -125 -5" fill="none" stroke="#D2A679" stroke-width="30" stroke-linecap="round"/>
+                          <path d="M -135 -20 L -125 5" stroke="#3A2D56" stroke-width="8" stroke-linecap="round"/> 
+                          <circle cx="-25" cy="20" r="30" fill="#D2A679"/>
+                       </g>
+                     </g>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+        <div class="text-side">
+          <span class="chapter-num">Chapter 08</span>
+          <h2>The Ballot</h2>
+          <p>Inside the secure voting compartment, Aryan approaches the Electronic Voting Machine (EVM). By pressing the button corresponding to his chosen representative, his vote is securely encrypted and recorded, followed by a VVPAT confirmation.</p>
+          <div class="page-controls">
+            <button class="btn btn-secondary" onclick="goToPage(7)">Back</button>
+            <button class="btn" onclick="goToPage(9)">Next Page</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chapter 9 -->
+    <div class="page" id="page-9">
+      <div class="page-content split">
+        <div class="text-side">
+          <span class="chapter-num">Chapter 09</span>
+          <h2>The Departure</h2>
+          <p>His civic duty fulfilled, Aryan exits the polling station. He proudly displays his inked finger—a powerful, unifying symbol of his participation in shaping the governance and future of the nation.</p>
+          <div class="page-controls">
+            <button class="btn btn-secondary" onclick="goToPage(8)">Back</button>
+            <button class="btn" onclick="goToPage(10)">Finish Book</button>
+          </div>
+        </div>
+        <div class="image-side">
+          <div class="art-container interactive-3d">
+            <svg viewBox="0 0 400 400" class="art-svg">
+              <defs>
+                <clipPath id="clip-9"><circle cx="200" cy="200" r="180"/></clipPath>
+              </defs>
+              <circle cx="200" cy="200" r="180" fill="#FDECD4" opacity="0.3"/>
+              <g clip-path="url(#clip-9)">
+                <g transform="translate(200, 200)">
+                  <g class="s9-rays">
+                     <polygon points="-15,-200 15,-200 0,-70" fill="#ECA26C" opacity="0.4"/>
+                     <polygon points="-15,200 15,200 0,70" fill="#ECA26C" opacity="0.4"/>
+                     <polygon points="-200,-15 -200,15 -70,0" fill="#ECA26C" opacity="0.4"/>
+                     <polygon points="200,-15 200,15 70,0" fill="#ECA26C" opacity="0.4"/>
+                  </g>
+                </g>
+                <g transform="translate(200, 320)">
+                  <g class="s9-aryan">
+                     <path d="M -60 0 C -60 -120, -40 -190, 0 -190 C 40 -190, 60 -120, 60 0 Z" fill="#1A56DB"/>
+                     <g transform="translate(0, -210)">
+                        <rect x="-30" y="-35" width="60" height="70" rx="30" fill="#D2A679"/>
+                        <path d="M -12 12 Q 0 25 12 12" fill="none" stroke="#2B2B2B" stroke-width="4" stroke-linecap="round"/>
+                        <path d="M -35 -12 C -35 -55, -25 -55, 0 -60 C 25 -55, 35 -55, 35 -12 C 35 -25, 25 -45, 0 -45 C -25 -45, -35 -25, -35 -12 Z" fill="#2B2B2B"/>
+                     </g>
+                     <g class="s9-arm" transform="translate(-50, -170)">
+                        <path d="M 0 0 C -50 -30, -70 -70, -60 -120" fill="none" stroke="#1A56DB" stroke-width="24" stroke-linecap="round"/>
+                        <circle cx="-60" cy="-120" r="18" fill="#D2A679"/>
+                        <path d="M -66 -120 L -66 -150 C -66 -155, -54 -155, -54 -150 L -54 -120 Z" fill="#D2A679"/>
+                        <path d="M -66 -150 C -66 -155, -54 -155, -54 -150 L -54 -135 L -66 -135 Z" fill="#3A2D56"/>
+                     </g>
+                     <g transform="translate(50, -170)">
+                        <path d="M 0 0 C 25 45, 40 90, 25 140" fill="none" stroke="#1A56DB" stroke-width="24" stroke-linecap="round"/>
+                     </g>
+                  </g>
+                </g>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quiz Page (Page 10) -->
+    <div class="page" id="page-10">
+      <div class="page-content">
+        <div class="quiz-layout">
+          <span class="chapter-num">Epilogue</span>
+          <h2>Knowledge Check</h2>
+          
+          <div class="quiz-card" id="qCard-1">
+            <div class="quiz-question">What form must a citizen file to officially request inclusion in the electoral roll?</div>
+            <div class="quiz-options">
+              <button class="quiz-btn" onclick="handleAnswer(1, false, this)">A. Form 8</button>
+              <button class="quiz-btn" onclick="handleAnswer(1, true, this)">B. Form 6</button>
+              <button class="quiz-btn" onclick="handleAnswer(1, false, this)">C. Form 7</button>
+            </div>
+          </div>
+
+          <div class="quiz-card" id="qCard-2">
+            <div class="quiz-question">Which officer conducts the physical ground verification to safeguard electoral integrity?</div>
+            <div class="quiz-options">
+              <button class="quiz-btn" onclick="handleAnswer(2, false, this)">A. Polling Inspector</button>
+              <button class="quiz-btn" onclick="handleAnswer(2, false, this)">B. District Magistrate</button>
+              <button class="quiz-btn" onclick="handleAnswer(2, true, this)">C. Booth Level Officer (BLO)</button>
+            </div>
+          </div>
+
+          <div class="quiz-card" id="qCard-3">
+            <div class="quiz-question">What instrument of democratic power is issued upon successful registration?</div>
+            <div class="quiz-options">
+              <button class="quiz-btn" onclick="handleAnswer(3, true, this)">A. EPIC (Electors Photo Identity Card)</button>
+              <button class="quiz-btn" onclick="handleAnswer(3, false, this)">B. EVM (Electronic Voting Machine)</button>
+              <button class="quiz-btn" onclick="handleAnswer(3, false, this)">C. VVPAT (Voter Verified Paper Audit Trail)</button>
+            </div>
+          </div>
+
+          <div id="quiz-results">
+            <div style="margin-bottom: 30px;">🎉 Perfect! You are ready to vote!</div>
+            <button class="btn btn-secondary" style="border-color:#fff; color:#fff;" onclick="goToPage(9)">Read Again</button>
+            <a href="index.html" class="btn" style="background:#fff; color:#1A1A1A;">Return to Dashboard</a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
   </div>
-
-  <main class="guide-content-area">
-    
-    <!-- Step 1 -->
-    <div class="guide-card glass-card active" id="card-0">
-      <div class="card-icon">📝</div>
-      <h2 class="card-title">Voter Registration</h2>
-      <p class="card-text">The foundation of a democracy is its voters. In India, anyone who is a citizen and above 18 years of age is eligible to vote, provided they are registered in the electoral roll.</p>
-      
-      <div class="interactive-grid">
-        <div class="info-box" style="border-left-color: var(--saffron);">
-          <h4>Form 6</h4>
-          <p>The application form to register as a new voter. Can be filled online via the ECI portal or offline.</p>
-        </div>
-        <div class="info-box" style="border-left-color: #fff;">
-          <h4>EPIC Card</h4>
-          <p>Electors Photo Identity Card. Your official ID issued by the Election Commission to cast your vote.</p>
-        </div>
-        <div class="info-box" style="border-left-color: var(--green-light);">
-          <h4>BLO Verification</h4>
-          <p>A Booth Level Officer will visit your address to verify your residency before issuing the card.</p>
-        </div>
-      </div>
-      
-      <div class="guide-controls">
-        <button class="btn-guide btn-prev" style="visibility: hidden;">Previous</button>
-        <button class="btn-guide btn-next" onclick="goToStep(1)">Next Step: Nominations ➔</button>
-      </div>
-    </div>
-
-    <!-- Step 2 -->
-    <div class="guide-card glass-card" id="card-1">
-      <div class="card-icon">⚖️</div>
-      <h2 class="card-title">Code of Conduct & Nominations</h2>
-      <p class="card-text">Once the Election Commission announces the dates, the Model Code of Conduct (MCC) kicks in. Politicians then officially step forward to run for office.</p>
-      
-      <div class="interactive-grid">
-        <div class="info-box" style="border-left-color: var(--chakra-blue);">
-          <h4>Model Code of Conduct</h4>
-          <p>Rules that prevent the ruling party from misusing government machinery or announcing new policies to sway voters.</p>
-        </div>
-        <div class="info-box" style="border-left-color: var(--error);">
-          <h4>Filing Nominations</h4>
-          <p>Candidates submit their nomination papers to the Returning Officer along with a security deposit.</p>
-        </div>
-        <div class="info-box" style="border-left-color: var(--saffron);">
-          <h4>Affidavits</h4>
-          <p>Crucial step! Candidates must publicly declare their criminal records, assets, liabilities, and educational qualifications.</p>
-        </div>
-      </div>
-      
-      <div class="guide-controls">
-        <button class="btn-guide btn-prev" onclick="goToStep(0)">⬅ Previous</button>
-        <button class="btn-guide btn-next" onclick="goToStep(2)">Next Step: Campaigning ➔</button>
-      </div>
-    </div>
-
-    <!-- Step 3 -->
-    <div class="guide-card glass-card" id="card-2">
-      <div class="card-icon">🎤</div>
-      <h2 class="card-title">The Campaign Trail</h2>
-      <p class="card-text">This is the most visible phase of elections. Parties and candidates have about two weeks to reach out to voters and convince them.</p>
-      
-      <div class="interactive-grid">
-        <div class="info-box" style="border-left-color: var(--green-light);">
-          <h4>Manifestos</h4>
-          <p>Official documents released by political parties detailing their promises and policies if elected.</p>
-        </div>
-        <div class="info-box" style="border-left-color: #fff;">
-          <h4>Expenditure Limits</h4>
-          <p>The ECI sets strict limits on how much a candidate can spend on their campaign to ensure a level playing field.</p>
-        </div>
-        <div class="info-box" style="border-left-color: var(--chakra-blue-light);">
-          <h4>The 48-Hour Silence</h4>
-          <p>All public campaigning must stop 48 hours before voting begins to give voters time to think peacefully.</p>
-        </div>
-      </div>
-      
-      <div class="guide-controls">
-        <button class="btn-guide btn-prev" onclick="goToStep(1)">⬅ Previous</button>
-        <button class="btn-guide btn-next" onclick="goToStep(3)">Next Step: Voting Day ➔</button>
-      </div>
-    </div>
-
-    <!-- Step 4 -->
-    <div class="guide-card glass-card" id="card-3">
-      <div class="card-icon">🗳️</div>
-      <h2 class="card-title">Voting Day Process</h2>
-      <p class="card-text">The day millions exercise their democratic right. India uses Electronic Voting Machines (EVMs) to ensure fast and secure polling.</p>
-      
-      <div class="interactive-grid">
-        <div class="info-box" style="border-left-color: var(--saffron);">
-          <h4>Indelible Ink</h4>
-          <p>A special ink mark is applied to the voter's left index finger to prevent them from voting twice.</p>
-        </div>
-        <div class="info-box" style="border-left-color: var(--chakra-blue);">
-          <h4>EVM & VVPAT</h4>
-          <p>You press a button on the EVM, and the VVPAT prints a slip showing your vote for 7 seconds to verify accuracy.</p>
-        </div>
-        <div class="info-box" style="border-left-color: var(--error);">
-          <h4>NOTA</h4>
-          <p>None Of The Above. A button allowing voters to officially reject all contesting candidates.</p>
-        </div>
-      </div>
-      
-      <div class="guide-controls">
-        <button class="btn-guide btn-prev" onclick="goToStep(2)">⬅ Previous</button>
-        <button class="btn-guide btn-next" onclick="goToStep(4)">Next Step: Results ➔</button>
-      </div>
-    </div>
-
-    <!-- Step 5 -->
-    <div class="guide-card glass-card" id="card-4">
-      <div class="card-icon">📊</div>
-      <h2 class="card-title">Results & Government Formation</h2>
-      <p class="card-text">After voting concludes across all phases, the EVMs are secured in strong rooms until Counting Day.</p>
-      
-      <div class="interactive-grid">
-        <div class="info-box" style="border-left-color: var(--green-light);">
-          <h4>Counting Day</h4>
-          <p>EVMs are unsealed in the presence of candidate representatives. Results are declared constituency by constituency.</p>
-        </div>
-        <div class="info-box" style="border-left-color: var(--chakra-blue-light);">
-          <h4>The Magic Number: 272</h4>
-          <p>In the Lok Sabha (543 seats), a party or coalition needs at least 272 seats to form a majority government.</p>
-        </div>
-        <div class="info-box" style="border-left-color: #fff;">
-          <h4>Oath Taking</h4>
-          <p>The President invites the majority leader to form the government and takes oath as the Prime Minister.</p>
-        </div>
-      </div>
-      
-      <div class="guide-controls">
-        <button class="btn-guide btn-prev" onclick="goToStep(3)">⬅ Previous</button>
-        <a href="index.html" class="btn-guide btn-next" style="text-decoration: none; text-align: center;">Finish & Enter Dashboard 🚀</a>
-      </div>
-    </div>
-
-  </main>
 
   <script>
-    let currentStep = 0;
-    const totalSteps = 5;
-    
-    function goToStep(step) {
-      const stepItems = document.querySelectorAll('.step-item');
-      const progressBar = document.getElementById('stepperProgress');
+    // GSAP Setup
+    gsap.registerPlugin();
+    const totalPages = 10;
+    let currentPage = 0;
+    let isAnimating = false;
+
+    // Interactive 3D Mouse Parallax (softer)
+    document.addEventListener("mousemove", (e) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 15;
+      const y = (e.clientY / window.innerHeight - 0.5) * 15;
+      gsap.to(".interactive-3d", {
+        rotationY: x,
+        rotationX: -y,
+        ease: "power2.out",
+        transformPerspective: 900,
+        transformOrigin: "center"
+      });
+    });
+
+    let sceneTimeline = null;
+
+    function initPages() {
+      const pages = document.querySelectorAll('.page');
+      gsap.set(pages, { autoAlpha: 0, xPercent: 120, rotationY: -30 });
+      gsap.set(pages[0], { autoAlpha: 1, xPercent: 0, rotationY: 0, zIndex: 10 });
+      playSceneAnimations(0);
+    }
+
+    function playSceneAnimations(index) {
+      if(sceneTimeline) sceneTimeline.kill();
+      sceneTimeline = gsap.timeline();
+
+      // Clean up previous inline styles
+      gsap.set(".s1-box, .s2-laptop, .s3-card-wrapper, .s4-door, .s4-aryan, .s4-blo, .s5-epic-wrap, .s6-station, .s6-aryan, .s7-aryan-hand, .s7-marker-arm, .s8-evm, .s8-hand, .s9-aryan, .s9-arm", {clearProps: "transform,opacity"});
+
+      switch(index) {
+        case 1:
+          sceneTimeline.fromTo(".s1-box", {y: 30, opacity: 0}, {y: 0, opacity: 1, duration: 1.5, ease: "back.out(1.7)"})
+                       .to(".s1-box", {y: -15, duration: 2, repeat: -1, yoyo: true, ease: "sine.inOut"}, "-=0.5")
+                       .fromTo(".s1-aryan", {y: 50, opacity: 0}, {y: 0, opacity: 1, duration: 1, ease: "power3.out"}, 0.2);
+          break;
+        case 2:
+          sceneTimeline.fromTo(".s2-laptop", {rotationX: 90, transformOrigin: "bottom center"}, {rotationX: 0, duration: 1, ease: "power3.out"})
+                       .fromTo(".s2-screen", {fill: "#4A4A4A"}, {fill: "#1A56DB", duration: 0.5}, 0.5)
+                       .fromTo(".s2-form", {opacity: 0, x: -20}, {opacity: 0.8, x: 0, stagger: 0.2, duration: 0.5}, 0.8)
+                       .fromTo(".s2-aryan", {y: 50, opacity: 0}, {y: 0, opacity: 1, duration: 0.8, ease: "back.out"}, 0.2)
+                       .to(".s2-arm-l", {rotation: -5, transformOrigin: "top left", duration: 0.3, repeat: -1, yoyo: true, ease: "none"}, 1)
+                       .to(".s2-arm-r", {rotation: 5, transformOrigin: "top right", duration: 0.25, repeat: -1, yoyo: true, ease: "none"}, 1.1);
+          break;
+        case 3:
+          sceneTimeline.fromTo(".s3-card-wrapper", {rotationY: -90, scale: 0.5}, {rotationY: 0, scale: 1, duration: 1.5, ease: "back.out(1.5)"})
+                       .fromTo(".s3-photo, .s3-photo-head, .s3-photo-body, .s3-line1, .s3-line2, .s3-line3, .s3-qr", 
+                               {opacity: 0, y: 10}, {opacity: 1, y: 0, stagger: 0.1, duration: 0.5}, 0.5)
+                       .fromTo(".s3-scanner", {y: -80, opacity: 0}, {y: 80, opacity: 1, duration: 2, repeat: -1, ease: "linear"}, 1.5);
+          break;
+        case 4:
+          sceneTimeline.fromTo(".s4-door", {scaleY: 0, transformOrigin: "bottom"}, {scaleY: 1, duration: 1, ease: "power2.out"})
+                       .fromTo(".s4-aryan", {x: -100, opacity: 0}, {x: 0, opacity: 1, duration: 1, ease: "power3.out"}, 0.5)
+                       .fromTo(".s4-blo", {x: 100, opacity: 0}, {x: 0, opacity: 1, duration: 1, ease: "power3.out"}, 0.7)
+                       .to(".s4-arm", {rotation: 5, transformOrigin: "top right", duration: 0.4, repeat: -1, yoyo: true}, 1.5)
+                       .to(".s4-aryan-head", {rotation: 5, transformOrigin: "bottom center", duration: 2, repeat: -1, yoyo: true, ease: "sine.inOut"}, 1.5);
+          break;
+        case 5:
+          sceneTimeline.fromTo(".s5-epic", {rotationY: 180, scale: 0, opacity: 0}, {rotationY: 0, scale: 1, opacity: 1, duration: 2, ease: "expo.out"})
+                       .to(".s5-epic-wrap", {rotationY: -15, rotationX: 10, y: -20, duration: 3, repeat: -1, yoyo: true, ease: "sine.inOut"}, 2)
+                       .fromTo(".s5-shine", {x: -200}, {x: 200, duration: 3, repeat: -1, ease: "power1.inOut"}, 2);
+          break;
+        case 6:
+          sceneTimeline.fromTo(".s6-station", {scale: 0.8, y: 50, opacity: 0}, {scale: 1, y: 0, opacity: 1, duration: 1.5, ease: "power2.out"})
+                       .fromTo(".s6-aryan", {scale: 1.5, y: 100, opacity: 0}, {scale: 1, y: 0, opacity: 1, duration: 1.5, ease: "power3.out"}, 0.5)
+                       .to(".s6-leg-l", {rotation: 15, transformOrigin: "top center", duration: 0.5, repeat: -1, yoyo: true, ease: "sine.inOut"}, 1)
+                       .to(".s6-leg-r", {rotation: -15, transformOrigin: "top center", duration: 0.5, repeat: -1, yoyo: true, ease: "sine.inOut"}, 1)
+                       .to(".s6-aryan", {y: -10, duration: 0.5, repeat: -1, yoyo: true, ease: "sine.inOut"}, 1);
+          break;
+        case 7:
+          sceneTimeline.fromTo(".s7-aryan-hand", {y: 100, opacity: 0}, {y: 0, opacity: 1, duration: 1, ease: "back.out"})
+                       .fromTo(".s7-marker-arm", {x: 100, y: -100, opacity: 0}, {x: 0, y: 0, opacity: 1, duration: 1, ease: "power3.out"}, 0.5)
+                       .to(".s7-marker-arm", {x: 15, y: -15, rotation: 5, duration: 1, repeat: -1, yoyo: true, ease: "sine.inOut"}, 1.5)
+                       .fromTo(".s7-ink", {scale: 0, opacity: 0, transformOrigin: "center"}, {scale: 1, opacity: 1, duration: 2, repeat: -1, yoyo: true}, 1.5);
+          break;
+        case 8:
+          sceneTimeline.fromTo(".s8-evm", {scale: 0.8, opacity: 0}, {scale: 1, opacity: 1, duration: 1, ease: "power2.out"})
+                       .fromTo(".s8-hand", {y: -100, x: 50, opacity: 0}, {y: 0, x: 0, opacity: 1, duration: 1, ease: "back.out"}, 0.5)
+                       .to(".s8-hand", {y: 15, duration: 0.5, repeat: -1, yoyo: true, repeatDelay: 1.5}, 1.5)
+                       .to(".s8-btn", {fill: "#1A56DB", duration: 0.1, repeat: -1, yoyo: true, repeatDelay: 1.9, delay: 0.4}, 1.5)
+                       .to(".s8-light", {fill: "#E63946", duration: 0.5, repeat: -1, yoyo: true, repeatDelay: 1.5, delay: 0.4}, 1.5)
+                       .fromTo(".s8-slip", {y: -50, opacity: 0}, {y: 0, opacity: 1, duration: 0.5, repeat: -1, repeatDelay: 1.5, delay: 0.9}, 1.5);
+          break;
+        case 9:
+          sceneTimeline.fromTo(".s9-aryan", {y: 100, opacity: 0}, {y: 0, opacity: 1, duration: 1, ease: "back.out"})
+                       .fromTo(".s9-arm", {rotation: 30, transformOrigin: "bottom left"}, {rotation: -10, duration: 1, ease: "back.out(2)"}, 0.5)
+                       .to(".s9-arm", {rotation: 5, duration: 1.5, repeat: -1, yoyo: true, ease: "sine.inOut"}, 1.5)
+                       .fromTo(".s9-rays", {scale: 0, opacity: 0, rotation: 0, transformOrigin: "center"}, {scale: 1.2, opacity: 1, rotation: 45, duration: 10, repeat: -1, ease: "linear"}, 0);
+          break;
+        case 10:
+          gsap.fromTo("#qCard-1", {y: 50, autoAlpha: 0}, {y: 0, autoAlpha: 1, duration: 1, ease: "power3.out"});
+          break;
+      }
+    }
+
+    function goToPage(target) {
+      if(target < 0 || target > totalPages || isAnimating) return;
+      isAnimating = true;
       
-      // Update each step item by only changing class and circle text — never rebuild innerHTML
-      stepItems.forEach(function(el, index) {
-        el.classList.remove('active', 'completed');
-        var circle = el.querySelector('.step-circle');
-        
-        if (index < step) {
-          // Completed step — show checkmark
-          el.classList.add('completed');
-          circle.textContent = '\u2713'; // ✓
-        } else if (index === step) {
-          // Active step — show step number
-          el.classList.add('active');
-          circle.textContent = String(step + 1);
-        } else {
-          // Future step — show step number
-          circle.textContent = String(index + 1);
-        }
+      const current = document.getElementById(`page-${currentPage}`);
+      const next = document.getElementById(`page-${target}`);
+      const direction = target > currentPage ? 1 : -1;
+      
+      const tl = gsap.timeline({ 
+        onComplete: () => { 
+          isAnimating = false; 
+          currentPage = target; 
+          playSceneAnimations(target); 
+        } 
+      });
+      
+      tl.to(current, {
+        xPercent: -120 * direction,
+        rotationY: 35 * direction,
+        autoAlpha: 0,
+        duration: 1.2,
+        ease: "power3.inOut"
+      }, 0);
+      
+      gsap.set(next, { xPercent: 120 * direction, rotationY: -35 * direction, zIndex: 10 });
+      tl.to(next, {
+        xPercent: 0,
+        rotationY: 0,
+        autoAlpha: 1,
+        duration: 1.2,
+        ease: "power3.inOut"
+      }, 0);
+
+      const textSide = next.querySelector('.text-side');
+      const imageSide = next.querySelector('.image-side');
+      if (textSide) tl.fromTo(textSide, {y: 50, autoAlpha: 0}, {y: 0, autoAlpha: 1, duration: 1, ease: "power2.out"}, 0.6);
+      if (imageSide) tl.fromTo(imageSide, {scale: 0.8, autoAlpha: 0}, {scale: 1, autoAlpha: 1, duration: 1.2, ease: "back.out(1.2)"}, 0.7);
+      
+      gsap.to("#progressBar", { width: `${(target / totalPages) * 100}%`, duration: 1, ease: "power2.out" }, 0);
+      
+      if (target === 10 && quizScore === 0) {
+          gsap.set(".quiz-card", {display: "none", autoAlpha: 0});
+          gsap.set("#qCard-1", {display: "block"});
+          gsap.set("#quiz-results", {display: "none"});
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') {
+        if (currentPage < totalPages) goToPage(currentPage + 1);
+      } else if (e.key === 'ArrowLeft') {
+        if (currentPage > 0) goToPage(currentPage - 1);
+      }
+    });
+
+    let quizScore = 0;
+    function handleAnswer(qNum, isCorrect, btn) {
+      const card = document.getElementById(`qCard-${qNum}`);
+      const buttons = card.querySelectorAll('.quiz-btn');
+      
+      buttons.forEach(b => {
+          b.style.pointerEvents = 'none';
+          if(b.getAttribute('onclick').includes('true')) b.classList.add('correct');
+          else b.style.opacity = '0.5';
       });
 
-      // Update progress bar
-      var progressPercentage = (step / (totalSteps - 1)) * 100;
-      progressBar.style.width = progressPercentage + '%';
-      
-      // Update visible card
-      document.querySelectorAll('.guide-card').forEach(function(card) {
-        card.classList.remove('active');
-      });
-      document.getElementById('card-' + step).classList.add('active');
-      
-      currentStep = step;
+      if (!isCorrect) {
+          btn.classList.add('wrong');
+          btn.style.opacity = '1';
+      } else {
+          quizScore++;
+      }
+
+      setTimeout(() => {
+          gsap.to(card, {y: -50, autoAlpha: 0, duration: 0.5, onComplete: () => {
+            card.style.display = 'none';
+            if (qNum < 3) {
+                const nextCard = document.getElementById(`qCard-${qNum + 1}`);
+                nextCard.style.display = 'block';
+                gsap.fromTo(nextCard, {y: 50, autoAlpha: 0}, {y: 0, autoAlpha: 1, duration: 0.5, ease: "power2.out"});
+            } else {
+                const results = document.getElementById('quiz-results');
+                results.style.display = 'block';
+                if (quizScore === 3) {
+                    results.innerHTML = `<div style="margin-bottom: 30px;">🎉 Perfect 3/3! You are a smart voter!</div>
+                                         <button class="btn btn-secondary" style="border-color:#fff; color:#fff;" onclick="goToPage(9)">Read Again</button>
+                                         <a href="index.html" class="btn" style="background:#fff; color:#1A1A1A;">Return to Dashboard</a>`;
+                } else {
+                    results.innerHTML = `<div style="margin-bottom: 30px;">👍 You got ${quizScore} out of 3. You are ready to participate!</div>
+                                         <button class="btn btn-secondary" style="border-color:#fff; color:#fff;" onclick="goToPage(9)">Read Again</button>
+                                         <a href="index.html" class="btn" style="background:#fff; color:#1A1A1A;">Return to Dashboard</a>`;
+                }
+                gsap.fromTo(results, {scale: 0.8, autoAlpha: 0}, {scale: 1, autoAlpha: 1, duration: 0.8, ease: "back.out"});
+                quizScore = 0; 
+            }
+          }});
+      }, 1500);
     }
+
+    window.onload = () => { initPages(); };
   </script>
 </body>
 </html>

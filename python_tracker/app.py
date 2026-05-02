@@ -139,14 +139,26 @@ def choose_primary_table(tables: list[pd.DataFrame]) -> pd.DataFrame | None:
 
 
 def fetch_live_election_table() -> dict:
+    now = datetime.now(timezone.utc)
+    counting_start = datetime(2026, 5, 4, 2, 30, tzinfo=timezone.utc) # 8:00 AM IST is 2:30 AM UTC
+    
     fallback_schedule = [
-        {"region": "West Bengal", "leading": "Final Phase Polling", "party": "April 29, 2026", "leadMargin": "Live Now", "round": "Assembly 2026"},
-        {"region": "Assam", "leading": "Upcoming Counting", "party": "May 4, 2026", "leadMargin": "Scheduled", "round": "Assembly 2026"},
-        {"region": "Kerala", "leading": "Upcoming Counting", "party": "May 4, 2026", "leadMargin": "Scheduled", "round": "Assembly 2026"},
-        {"region": "Tamil Nadu", "leading": "Upcoming Counting", "party": "May 4, 2026", "leadMargin": "Scheduled", "round": "Assembly 2026"},
-        {"region": "Puducherry", "leading": "Upcoming Counting", "party": "May 4, 2026", "leadMargin": "Scheduled", "round": "Assembly 2026"}
+        {"region": "West Bengal", "leading": "Counting Starts May 4", "party": "ECI Scheduled", "leadMargin": "Upcoming", "round": "Assembly 2026"},
+        {"region": "Tamil Nadu", "leading": "Counting Starts May 4", "party": "ECI Scheduled", "leadMargin": "Upcoming", "round": "Assembly 2026"},
+        {"region": "Kerala", "leading": "Counting Starts May 4", "party": "ECI Scheduled", "leadMargin": "Upcoming", "round": "Assembly 2026"},
+        {"region": "Assam", "leading": "Counting Starts May 4", "party": "ECI Scheduled", "leadMargin": "Upcoming", "round": "Assembly 2026"},
+        {"region": "Puducherry", "leading": "Counting Starts May 4", "party": "ECI Scheduled", "leadMargin": "Upcoming", "round": "Assembly 2026"}
     ]
     fallback_cols = ["region", "leading", "party", "leadMargin", "round"]
+
+    if now < counting_start:
+        return {
+            "status": "active",
+            "message": "Official counting starts on May 4, 2026 at 8:00 AM IST.",
+            "columns": fallback_cols,
+            "table": fallback_schedule,
+            "source": ECI_URL,
+        }
 
     try:
         response = requests.get(ECI_URL, headers=DEFAULT_HEADERS, timeout=20)

@@ -102,7 +102,7 @@
 .hero-map-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 400 / 450;
+  aspect-ratio: 440 / 500;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -115,10 +115,20 @@
   font-size: var(--fs-sm);
 }
 
+.map-error {
+  font-family: var(--font-body);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  text-align: center;
+  padding: 2rem;
+}
+
 .india-neon-map {
   width: 100%;
   height: 100%;
-  filter: drop-shadow(0 0 10px rgba(19, 136, 8, 0.2));
+  filter: drop-shadow(0 0 18px rgba(26, 86, 219, 0.25));
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .map-background-circle {
@@ -136,16 +146,15 @@
 
 .state-path {
   fill: rgba(18, 22, 56, 0.6);
-  stroke: url(#neonGradient);
-  stroke-width: 0.8;
-  transition: all var(--duration-normal);
+  stroke: rgba(255, 255, 255, 0.18);
+  stroke-width: 0.6;
+  transition: fill-opacity 0.2s, filter 0.2s;
   cursor: pointer;
 }
 
 .state-path:hover {
-  fill: rgba(19, 136, 8, 0.15);
-  stroke-width: 1.5;
-  filter: drop-shadow(0 0 8px var(--green-light));
+  fill-opacity: 0.85;
+  filter: drop-shadow(0 0 8px currentColor);
 }
 
 .city-marker {
@@ -154,12 +163,12 @@
 }
 
 .city-label {
-  fill: white;
+  fill: rgba(255,255,255,0.85);
   font-family: var(--font-body);
-  font-size: 8px;
-  font-weight: 500;
+  font-size: 7.5px;
+  font-weight: 600;
   pointer-events: none;
-  text-shadow: 0 0 3px rgba(0,0,0,0.8);
+  letter-spacing: 0.2px;
 }
 
 .voter-count-label {
@@ -178,9 +187,6 @@
   100% { filter: drop-shadow(0 0 5px rgba(19, 136, 8, 0.4)); }
 }
 
-.india-neon-map path {
-  animation: pulse-neon 4s ease-in-out infinite;
-}
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -1398,6 +1404,38 @@ canvas {
 }
 
 /* News & Live Track Section */
+.news-topic-selector {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.topic-btn {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  transition: all 0.3s var(--ease-out);
+}
+
+.topic-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.topic-btn.active {
+  background: var(--chakra-blue);
+  color: white;
+  border-color: var(--chakra-blue);
+  box-shadow: 0 4px 15px rgba(26, 86, 219, 0.3);
+}
+
 .news-grid {
   display: grid;
   grid-template-columns: 2fr 1fr;

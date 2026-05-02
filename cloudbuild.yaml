@@ -1,0 +1,75 @@
+steps:
+  # ── Build Node.js API image ───────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - '-t'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/naagrikinfo/api:latest'
+      - '.'
+    dir: '.'
+
+  # ── Push Node.js image ────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/naagrikinfo/api:latest'
+
+  # ── Deploy to Cloud Run ────────────────────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - naagrikinfo-api
+      - '--image=$_REGION-docker.pkg.dev/$PROJECT_ID/naagrikinfo/api:latest'
+      - '--region=$_REGION'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--min-instances=0'
+      - '--max-instances=5'
+      - '--set-env-vars=NODE_ENV=production'
+
+  # ── Build Python Tracker image ────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - build
+      - '-t'
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/naagrikinfo/tracker:latest'
+      - './python_tracker'
+    dir: '.'
+
+  # ── Push Python image ─────────────────────────────────────────
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - push
+      - '$_REGION-docker.pkg.dev/$PROJECT_ID/naagrikinfo/tracker:latest'
+
+  # ── Deploy Python tracker to Cloud Run ────────────────────────
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - run
+      - deploy
+      - naagrikinfo-tracker
+      - '--image=$_REGION-docker.pkg.dev/$PROJECT_ID/naagrikinfo/tracker:latest'
+      - '--region=$_REGION'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
+      - '--port=8080'
+      - '--memory=512Mi'
+      - '--cpu=1'
+      - '--min-instances=0'
+      - '--max-instances=2'
+
+images:
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/naagrikinfo/api:latest'
+  - '$_REGION-docker.pkg.dev/$PROJECT_ID/naagrikinfo/tracker:latest'
+
+substitutions:
+  _REGION: us-central1
+
+options:
+  logging: CLOUD_LOGGING_ONLY

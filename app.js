@@ -21,6 +21,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   initStateAnalysis();
   initMemberAssessment();
   initHeroNeonMap();
+
+  const config = getLiveConfig();
+  setInterval(refreshAllLiveSections, config.refreshMs);
 });
 
 function initWarningBanner() {
@@ -156,13 +159,17 @@ async function initLiveDataBootstrap() {
 function timeAgo(input) {
   const date = input ? new Date(input) : null;
   if (!date || Number.isNaN(date.getTime())) return 'Recently';
-  const sec = Math.floor((Date.now() - date.getTime()) / 1000);
-  if (sec < 60) return 'Just now';
+  const diff = Date.now() - date.getTime();
+  const sec = Math.floor(Math.abs(diff) / 1000);
+  const isFuture = diff < 0;
+  const suffix = isFuture ? ' from now' : ' ago';
+
+  if (sec < 60) return isFuture ? 'Starting soon' : 'Just now';
   const min = Math.floor(sec / 60);
-  if (min < 60) return `${min} min ago`;
+  if (min < 60) return `${min} min${suffix}`;
   const hr = Math.floor(min / 60);
-  if (hr < 24) return `${hr} hr ago`;
-  return `${Math.floor(hr / 24)} day ago`;
+  if (hr < 24) return `${hr} hr${suffix}`;
+  return `${Math.floor(hr / 24)} day${suffix}`;
 }
 
 function toArrayPayload(payload) {
@@ -171,8 +178,9 @@ function toArrayPayload(payload) {
   return payload.articles || payload.results || payload.items || payload.data || payload.contests || [];
 }
 
-async function fetchLiveNews(config) {
-  const candidates = [config.news.endpoint, ...config.news.sourceCandidates].filter(Boolean);
+async function fetchLiveNews(config, topic = '') {
+  const endpoint = config.news.endpoint + (topic ? `?topic=${topic}` : '');
+  const candidates = [endpoint, ...config.news.sourceCandidates].filter(Boolean);
   const fallbackRows = await fetchFirstWorkingArray(candidates);
   return fallbackRows.map(article => ({
     source: article.source?.name || article.source || 'Live Source',
@@ -183,6 +191,23 @@ async function fetchLiveNews(config) {
     content: article.description || article.content || article.snippet || 'Open source for details.',
     url: article.url || '#'
   })).slice(0, config.news.max);
+}
+
+async function refreshAllLiveSections() {
+  console.log('Refreshing all live sections...');
+  const config = getLiveConfig();
+  
+  // Refresh bootstrap data
+  await initLiveDataBootstrap();
+  
+  // Re-run initialization for sections that depend on bootstrap data
+  initRepresentatives();
+  initPromises();
+  initLiveTrack();
+  initIntegrityCharts();
+  initMemberAssessment();
+  initHeroNeonMap();
+  initStateAnalysis();
 }
 
 async function fetchVoteCounting(config) {
@@ -291,7 +316,9 @@ window.openConstituencyModal = async function(stateCode) {
 function initLiveTrack() {
   const newsFeed = document.getElementById('newsFeed');
   const trackerList = document.getElementById('liveTrackerList');
+  const topicBtns = document.querySelectorAll('.topic-btn');
   const config = getLiveConfig();
+  let currentTopic = 'all';
 
   function renderNews(items) {
     if (!newsFeed) return;
@@ -300,7 +327,7 @@ function initLiveTrack() {
       newsFeed.innerHTML = `
         <div class="track-item pending">
           <strong>Live News Unavailable</strong>
-          <span>Backend RSS fetch did not return entries. Check server connectivity and internet access.</span>
+          <span>Backend RSS fetch did not return entries for topic "${currentTopic}". Check server connectivity.</span>
         </div>
       `;
       return;
@@ -330,6 +357,26 @@ function initLiveTrack() {
     });
   }
 
+  async function refreshNews() {
+    try {
+      LIVE_NEWS = await fetchLiveNews(config, currentTopic === 'all' ? '' : currentTopic);
+      renderNews(LIVE_NEWS);
+    } catch (error) {
+      renderNews([]);
+    }
+  }
+
+  if (topicBtns) {
+    topicBtns.forEach(btn => {
+      btn.onclick = () => {
+        topicBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentTopic = btn.getAttribute('data-topic');
+        refreshNews();
+      };
+    });
+  }
+
   function renderVoteCounting(items) {
     if (!trackerList) return;
 
@@ -355,14 +402,7 @@ function initLiveTrack() {
     `).join('');
   }
 
-  async function refreshLiveData() {
-    try {
-      LIVE_NEWS = await fetchLiveNews(config);
-      renderNews(LIVE_NEWS);
-    } catch (error) {
-      renderNews([]);
-    }
-
+  async function refreshVoteData() {
     try {
       const voteData = await fetchVoteCounting(config);
       renderVoteCounting(voteData);
@@ -371,25 +411,35 @@ function initLiveTrack() {
     }
   }
 
+  async function refreshLiveData() {
+    await refreshNews();
+    await refreshVoteData();
+  }
+
+  if (newsFeed.dataset.initialized) {
+    refreshLiveData();
+    return;
+  }
+  newsFeed.dataset.initialized = "true";
+
   refreshLiveData();
-  setInterval(refreshLiveData, config.refreshMs);
   
   // Modal Close Logic
   const closeBtn = document.getElementById('closeNewsModal');
   if(closeBtn) {
-    closeBtn.addEventListener('click', () => {
+    closeBtn.onclick = () => {
       document.getElementById('newsModal').style.display = 'none';
-    });
+    };
   }
 
   const closeConstBtn = document.getElementById('closeConstituencyModal');
   if(closeConstBtn) {
-    closeConstBtn.addEventListener('click', () => {
+    closeConstBtn.onclick = () => {
       document.getElementById('constituencyModal').style.display = 'none';
-    });
+    };
   }
 
-  window.addEventListener('click', (e) => {
+  window.onclick = (e) => {
     const modal = document.getElementById('newsModal');
     const constModal = document.getElementById('constituencyModal');
     if (e.target === modal) {
@@ -398,7 +448,7 @@ function initLiveTrack() {
     if (e.target === constModal) {
       constModal.style.display = 'none';
     }
-  });  
+  };  
 }
 
 const INTEGRITY_LABELS = ["Unfulfilled Promises", "Money Influence", "False Claims", "Criminal Cases", "Hate Speech"];
@@ -416,7 +466,8 @@ async function initIntegrityCharts() {
     return;
   }
 
-  select.innerHTML = integrityRows.map(row => `<option value="${row.party}">${row.party}</option>`).join('');
+  const currentVal = select.value;
+  select.innerHTML = integrityRows.map(row => `<option value="${row.party}" ${row.party === currentVal ? 'selected' : ''}>${row.party}</option>`).join('');
 
   function drawTableGraph(party) {
     const data = integrityRows.find(r => r.party === party);
@@ -456,7 +507,11 @@ async function initIntegrityCharts() {
     }).join('');
   }
 
-  select.addEventListener('change', (e) => drawTableGraph(e.target.value));
+  if (!select.dataset.initialized) {
+    select.onchange = (e) => drawTableGraph(e.target.value);
+    select.dataset.initialized = "true";
+  }
+  
   drawTableGraph(select.value);
 }
 
@@ -560,44 +615,61 @@ async function initStateAnalysis() {
   const asBroken = document.getElementById('asBroken');
   const asDetailsList = document.getElementById('asDetailsList');
   const config = getLiveConfig();
-  const liveStateAnalysis = await fetchEndpointArray(config.endpoints.stateAnalysis);
-  
   if (!select) return;
 
-  if (!liveStateAnalysis.length) {
-    asDetailsList.innerHTML = '<div class="track-item pending"><strong>Live state analysis not connected</strong><span>Set endpoints.stateAnalysis in data/live-config.js.</span></div>';
+  // Load all states for dropdown
+  const allStates = await fetchEndpointArray(config.endpoints.stateAnalysis);
+  if (!allStates.length) {
+    if (asDetailsList) asDetailsList.innerHTML = '<div class="track-item pending"><strong>State analysis unavailable</strong><span>Could not load state list from server.</span></div>';
     return;
   }
-  
-  select.innerHTML = '<option value="" disabled selected>Select a state to view analysis</option>' + 
-    liveStateAnalysis.map(s => `<option value="${s.state || s.name}">${s.state || s.name}</option>`).join('');
-    
-  select.addEventListener('change', (e) => {
-    const sName = e.target.value;
-    const sData = liveStateAnalysis.find(s => (s.state || s.name) === sName);
-    if(!sData) return;
-    
-    const stateName = sData.state || sData.name || 'Unknown';
-    const rulingParty = sData.rulingParty || sData.party || 'N/A';
-    asStateName.innerText = stateName;
-    asRulingParty.innerText = `Ruling Party: ${rulingParty}`;
-    asRulingParty.style.background = `var(--party-${String(rulingParty).toLowerCase().replace(/[^a-z0-9]/g, '')}, var(--party-other))`;
 
-    const total = Number(sData.totalPromises || sData.total || 0);
-    const fulfilled = Number(sData.fulfilledPercent || sData.fulfilled || 0);
-    const pending = Number(sData.pendingPercent || sData.pending || 0);
-    const broken = Number(sData.brokenPercent || sData.broken || 0);
-    
-    asTotal.innerText = total || 'N/A';
-    asFulfilled.innerText = total ? `${fulfilled}%` : 'N/A';
-    asPending.innerText = total ? `${pending}%` : 'N/A';
-    asBroken.innerText = total ? `${broken}%` : 'N/A';
-    
-    const details = Array.isArray(sData.details) ? sData.details : [];
-    asDetailsList.innerHTML = details.length ? details.map(item => `
-      <div class="track-item ${item.status || 'pending'}"><strong>${item.title || 'Update'}</strong><span>${item.text || item.description || ''}</span></div>
-    `).join('') : '<div class="track-item pending"><strong>No live state notes</strong><span>Source connected but no detailed notes provided.</span></div>';
-  });
+  select.innerHTML = '<option value="" disabled selected>Select a state to view analysis</option>' +
+    allStates.map(s => `<option value="${s.state || s.name}">${s.state || s.name}</option>`).join('');
+
+  async function loadStateAnalysis(stateName) {
+    if (asStateName) asStateName.innerText = stateName;
+    if (asRulingParty) asRulingParty.innerText = 'Loading...';
+    if (asDetailsList) asDetailsList.innerHTML = '<div class="track-item pending"><strong>Fetching live news...</strong><span>Analysing news sentiment for this state.</span></div>';
+
+    try {
+      const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+      const API_BASE = IS_LOCAL && window.location.port !== '8787' ? 'http://localhost:8787' : '';
+      const res = await fetch(`${API_BASE}/api/state-analysis/live?state=${encodeURIComponent(stateName)}`);
+      if (!res.ok) throw new Error('API error');
+      const sData = await res.json();
+
+      const rulingParty = sData.rulingParty || 'N/A';
+      const cm = sData.cm || 'N/A';
+      if (asStateName) asStateName.innerText = sData.state || stateName;
+      if (asRulingParty) {
+        asRulingParty.innerText = `${rulingParty} — CM: ${cm}`;
+        asRulingParty.style.background = `var(--party-${String(rulingParty).toLowerCase().replace(/[^a-z0-9]/g, '')}, var(--party-other))`;
+      }
+      if (asTotal) asTotal.innerText = sData.totalPromises || 'N/A';
+      if (asFulfilled) asFulfilled.innerText = `${sData.fulfilledPct || 0}%`;
+      if (asPending) asPending.innerText = `${sData.pendingPct || 0}%`;
+      if (asBroken) asBroken.innerText = `${sData.brokenPct || 0}%`;
+
+      const news = Array.isArray(sData.recentNews) ? sData.recentNews : [];
+      if (asDetailsList) {
+        asDetailsList.innerHTML = news.length
+          ? news.map(item => `
+            <div class="track-item fulfilled">
+              <strong>${item.title || 'Update'}</strong>
+              <span>${item.source || ''} — <a href="${item.url || '#'}" target="_blank" rel="noopener" style="color:var(--chakra-blue-light);">Read more</a></span>
+            </div>`).join('')
+          : '<div class="track-item pending"><strong>No recent news found</strong><span>No matching news articles for this state right now.</span></div>';
+      }
+    } catch (e) {
+      if (asDetailsList) asDetailsList.innerHTML = '<div class="track-item pending"><strong>Failed to load</strong><span>Could not fetch state analysis. Try again later.</span></div>';
+    }
+  }
+
+  if (!select.dataset.initialized) {
+    select.addEventListener('change', e => loadStateAnalysis(e.target.value));
+    select.dataset.initialized = 'true';
+  }
 }
 
 // Member Assessment
@@ -1134,12 +1206,15 @@ function initStates() {
 
       if (!points.length) throw new Error('No usable coordinates in map features');
 
-      const bounds = {
-        minLon: Math.min(...points.map((p) => p[0])),
-        maxLon: Math.max(...points.map((p) => p[0])),
-        minLat: Math.min(...points.map((p) => p[1])),
-        maxLat: Math.max(...points.map((p) => p[1]))
-      };
+      // Use reduce() instead of spread — Math.min(...hugeArray) causes stack overflow
+      let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+      for (const p of points) {
+        if (p[0] < minLon) minLon = p[0];
+        if (p[0] > maxLon) maxLon = p[0];
+        if (p[1] < minLat) minLat = p[1];
+        if (p[1] > maxLat) maxLat = p[1];
+      }
+      const bounds = { minLon, maxLon, minLat, maxLat };
 
       const width = 720;
       const height = 640;
@@ -1245,22 +1320,12 @@ function initRepresentatives() {
   let currentPage = 1;
   const pageSize = 20;
   let filteredData = [];
-  const KNOWN_REP_PHOTOS = {
-    'Narendra Modi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Shri_Narendra_Modi%2C_Prime_Minister_of_India.jpg/440px-Shri_Narendra_Modi%2C_Prime_Minister_of_India.jpg',
-    'Rahul Gandhi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Rahul_Gandhi_in_WEF_2020.jpg/440px-Rahul_Gandhi_in_WEF_2020.jpg',
-    'Amit Shah': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Amit_Shah_in_2023.jpg/440px-Amit_Shah_in_2023.jpg',
-    'Rajnath Singh': 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Rajnath_Singh_in_2023.jpg/440px-Rajnath_Singh_in_2023.jpg',
-    'Smriti Irani': 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7b/Smriti_Zubin_Irani.jpg/440px-Smriti_Zubin_Irani.jpg',
-    'Shashi Tharoor': 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Shashi_Tharoor_2015.jpg/440px-Shashi_Tharoor_2015.jpg',
-    'Asaduddin Owaisi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Asaduddin_Owaisi_in_2023.jpg/440px-Asaduddin_Owaisi_in_2023.jpg',
-    'Supriya Sule': 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/42/Supriya_Sule.jpg/440px-Supriya_Sule.jpg',
-    'Mahua Moitra': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Mahua_Moitra.jpg/440px-Mahua_Moitra.jpg'
-  };
   
   function populateStateFilter() {
     const states = window.STATES_DATA.map(s => s.name).sort();
+    const current = stateFilter.value;
     stateFilter.innerHTML = '<option value="">All States</option>' + 
-      states.map(s => `<option value="${s}">${s}</option>`).join('');
+      states.map(s => `<option value="${s}" ${s === current ? 'selected' : ''}>${s}</option>`).join('');
   }
 
   function populatePartyFilter() {
@@ -1271,8 +1336,9 @@ function initRepresentatives() {
       Object.values(window.MLA_DATA).forEach(list => list.forEach(mla => parties.add(mla.party)));
     }
     const partyArr = Array.from(parties).sort();
+    const current = partyFilter.value;
     partyFilter.innerHTML = '<option value="">All Parties</option>' + 
-      partyArr.map(p => `<option value="${p}">${p}</option>`).join('');
+      partyArr.map(p => `<option value="${p}" ${p === current ? 'selected' : ''}>${p}</option>`).join('');
   }
 
   function renderTable() {
@@ -1287,12 +1353,12 @@ function initRepresentatives() {
         </td>
         <td>${r.constituency}</td>
         <td>${r.state || stateFilter.value || 'Multiple'}</td>
-        <td><span style="color: var(--party-${r.party.toLowerCase().replace(/[^a-z0-9]/g, '')}, var(--party-other)); font-weight: bold;">●</span> ${r.party}</td>
+        <td><span style="color: var(--party-${String(r.party).toLowerCase().replace(/[^a-z0-9]/g, '')}, var(--party-other)); font-weight: bold;">●</span> ${r.party}</td>
       </tr>
     `).join('');
 
     if (pageData.length === 0) {
-      tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem;">No results found.</td></tr>`;
+      tableBody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding: 2rem; color: var(--text-secondary);">No representatives found. Try adjusting your filters.</td></tr>`;
     }
 
     const totalPages = Math.ceil(filteredData.length / pageSize) || 1;
@@ -1301,208 +1367,60 @@ function initRepresentatives() {
     nextPage.disabled = currentPage === totalPages;
 
     tableBody.querySelectorAll('.rep-name-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
+      btn.onclick = () => {
         const item = pageData[Number(btn.dataset.index)];
-        if (item) {
-          openRepresentativeDetails(item, typeFilter.value);
-        }
-      });
-    });
-  }
-
-  function partyLean(partyCode) {
-    const normalized = String(partyCode || '').toUpperCase();
-    if (normalized === 'BJP' || normalized === 'INC') return 'National Party';
-    if (normalized === 'AAP' || normalized === 'TMC' || normalized === 'DMK') return 'Regional-National Hybrid';
-    if (normalized === 'SP' || normalized === 'BSP' || normalized === 'NCP' || normalized === 'AIMIM') return 'Regional Party';
-    return 'Other / Independent Bloc';
-  }
-
-  async function fetchRepresentativeDetails(rep, repType) {
-    const config = getLiveConfig();
-    if (!config.endpoints.representativeDetails) return null;
-
-    const url = new URL(config.endpoints.representativeDetails);
-    url.searchParams.set('name', rep.name);
-    url.searchParams.set('constituency', rep.constituency || '');
-    url.searchParams.set('type', repType);
-    const response = await fetch(url.toString());
-    if (!response.ok) return null;
-    return await response.json();
-  }
-
-  function parameterBand(score) {
-    if (!Number.isFinite(score)) return 'Unavailable';
-    if (score >= 75) return 'High';
-    if (score >= 55) return 'Moderate';
-    return 'Low';
-  }
-
-  async function openRepresentativeDetails(rep, repType) {
-    if (!detailsModal) return;
-
-    const liveDetails = await fetchRepresentativeDetails(rep, repType);
-    const assessment = liveDetails?.assessment || {};
-    const deepProfile = liveDetails?.profile || {};
-    const partyVar = `var(--party-${rep.party.toLowerCase().replace(/[^a-z0-9]/g, '')}, var(--party-other))`;
-    const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(rep.name)}&background=1a56db&color=ffffff&size=256&bold=true`;
-    const profileImage = liveDetails?.image || KNOWN_REP_PHOTOS[rep.name] || fallbackAvatar;
-
-    const setText = (id, value) => {
-      const el = document.getElementById(id);
-      if (el) el.innerText = value || 'N/A';
-    };
-
-    setText('repDetailsName', rep.name);
-    setText('repDetailsRole', liveDetails?.roleLabel || (repType === 'mla' ? 'State MLA' : 'Lok Sabha MP'));
-    setText('repDetailsConstituency', `${rep.constituency}, ${rep.state || 'India'}`);
-    setText('repDetailsStatus', assessment.politicalStatus || 'Unavailable');
-    setText('repDetailsPartyLean', partyLean(rep.party));
-    setText('repDetailsTenure', deepProfile.tenureYears ? `${deepProfile.tenureYears} years` : 'N/A');
-    setText('repDetailsOverall', Number.isFinite(assessment.overallScore) ? `${assessment.overallScore}%` : 'N/A');
-    setText('repDetailsWinChance', Number.isFinite(assessment.winProbability) ? `${assessment.winProbability}%` : 'N/A');
-    setText('repDetailsAlliance', Number.isFinite(assessment.allianceStrength) ? `${assessment.allianceStrength}%` : 'N/A');
-    setText('repDetailAge', deepProfile.age ? String(deepProfile.age) : 'N/A');
-    setText('repDetailEducation', deepProfile.education);
-    setText('repDetailProfession', deepProfile.profession);
-    setText('repDetailCases', deepProfile.cases || 'N/A');
-    setText('repDetailAssets', deepProfile.assets);
-    setText('repDetailLiabilities', deepProfile.liabilities);
-    setText('repDetailNetWorth', deepProfile.netWorth);
-    setText('repDetailIssues', deepProfile.priorityIssues);
-
-    const partyBadge = document.getElementById('repDetailsPartyBadge');
-    if (partyBadge) {
-      partyBadge.innerText = rep.party;
-      partyBadge.style.background = partyVar;
-    }
-
-    const image = document.getElementById('repDetailsImage');
-    if (image) {
-      image.onerror = () => {
-        image.onerror = null;
-        image.src = fallbackAvatar;
+        if (item) openRepresentativeDetails(item, typeFilter.value);
       };
-      image.src = profileImage;
-      image.alt = `${rep.name} profile image`;
-    }
-
-    const list = document.getElementById('repAssessmentList');
-    if (list) {
-      const params = Array.isArray(assessment.parameters) ? assessment.parameters : [];
-      list.innerHTML = params.length ? params.map(param => {
-        const band = parameterBand(param.value);
-        const color = !Number.isFinite(param.value) ? 'var(--text-secondary)' : (param.value >= 75 ? 'var(--green-light)' : (param.value >= 55 ? 'var(--saffron)' : 'var(--error)'));
-        const width = Number.isFinite(param.value) ? Math.max(0, Math.min(100, Number(param.value))) : 0;
-        return `
-          <div class="rep-param-item">
-            <div class="rep-param-head">
-              <span>${param.key}</span>
-              <strong>${Number.isFinite(param.value) ? `${param.value}%` : 'N/A'}</strong>
-            </div>
-            <div class="rep-param-track">
-              <div class="rep-param-fill" style="width: ${width}%; background: ${color};"></div>
-            </div>
-            <div class="rep-param-band" style="color: ${color};">${band}</div>
-          </div>
-        `;
-      }).join('') : '<div class="track-item pending"><strong>No live assessment parameters</strong><span>Your representative details API did not return parameter scores.</span></div>';
-    }
-
-    const highlights = document.getElementById('repHighlights');
-    if (highlights) {
-      const notes = Array.isArray(assessment.highlights) ? assessment.highlights : [];
-      highlights.innerHTML = notes.length ? notes.map(h => `<li>${h}</li>`).join('') : '<li>No live highlights available for this representative.</li>';
-    }
-
-    const electionHistory = document.getElementById('repElectionHistory');
-    if (electionHistory) {
-      const history = Array.isArray(deepProfile.electionHistory) ? deepProfile.electionHistory : [];
-      electionHistory.innerHTML = history.length ? history.map(item => {
-        const color = item.result === 'Won' ? 'var(--green-light)' : 'var(--error)';
-        return `
-          <tr>
-            <td>${item.year}</td>
-            <td style="color:${color}; font-weight:700;">${item.result}</td>
-            <td>${item.voteShare ? `${item.voteShare}%` : 'N/A'}</td>
-            <td>${item.margin}</td>
-          </tr>
-        `;
-      }).join('') : '<tr><td colspan="4" style="text-align:center;">No live election history returned.</td></tr>';
-    }
-
-    const manifesto = document.getElementById('repManifestoList');
-    if (manifesto) {
-      const manifestoRows = Array.isArray(deepProfile.manifesto) ? deepProfile.manifesto : [];
-      manifesto.innerHTML = manifestoRows.length ? manifestoRows.map(item => {
-        const color = item.status === 'Fulfilled' ? 'var(--green-light)' : (item.status === 'In Progress' ? 'var(--saffron)' : 'var(--error)');
-        return `
-          <div class="rep-manifesto-item">
-            <div class="rep-manifesto-head">
-              <strong>${item.title}</strong>
-              <span class="rep-manifesto-status" style="color:${color};">${item.status}</span>
-            </div>
-            <div class="rep-param-track">
-              <div class="rep-param-fill" style="width:${Number(item.completion) || 0}%; background:${color};"></div>
-            </div>
-            <div class="rep-manifesto-foot">Completion: ${Number.isFinite(Number(item.completion)) ? `${item.completion}%` : 'N/A'}</div>
-          </div>
-        `;
-      }).join('') : '<div class="track-item pending"><strong>No live manifesto mapping</strong><span>Representative detail feed does not include manifesto mapping yet.</span></div>';
-    }
-
-    detailsModal.style.display = 'flex';
+    });
   }
 
   function updateData() {
     const type = typeFilter.value;
     const state = stateFilter.value;
     const party = partyFilter.value;
-    const query = searchInput.value.toLowerCase();
+    const q = searchInput.value.toLowerCase().trim();
 
-    let rawData = [];
-    if (type === 'mp') {
-      rawData = window.MP_DATA;
-    } else {
-      if (state) {
-        rawData = window.MLA_DATA[state] || [];
-      } else {
-        Object.values(window.MLA_DATA).forEach(list => rawData = rawData.concat(list));
-      }
-    }
-
-    filteredData = rawData.filter(item => {
-      const stateMatch = type === 'mla' ? true : (state === "" || item.state === state);
-      const partyMatch = party === "" || item.party === party;
-      const searchMatch = item.name.toLowerCase().includes(query) || item.constituency.toLowerCase().includes(query);
-      return stateMatch && partyMatch && searchMatch;
+    let base = type === 'mp' ? window.MP_DATA : (state ? (window.MLA_DATA[state] || []) : Object.values(window.MLA_DATA).flat());
+    
+    filteredData = base.filter(r => {
+      const matchState = !state || r.state === state || (type === 'mla' && !r.state);
+      const matchParty = !party || r.party === party;
+      const matchSearch = !q || r.name.toLowerCase().includes(q) || r.constituency.toLowerCase().includes(q);
+      return matchState && matchParty && matchSearch;
     });
 
     currentPage = 1;
     renderTable();
   }
 
-  populateStateFilter();
-  populatePartyFilter();
-  updateData();
+  if (tableBody.dataset.initialized) {
+    populateStateFilter();
+    populatePartyFilter();
+    updateData();
+    return;
+  }
+  tableBody.dataset.initialized = "true";
 
-  typeFilter.addEventListener('change', () => { populatePartyFilter(); updateData(); });
-  stateFilter.addEventListener('change', updateData);
-  partyFilter.addEventListener('change', updateData);
+  typeFilter.onchange = () => {
+    populatePartyFilter();
+    updateData();
+  };
+  stateFilter.onchange = updateData;
+  partyFilter.onchange = updateData;
   
   let debounce;
-  searchInput.addEventListener('input', () => {
+  searchInput.oninput = () => {
     clearTimeout(debounce);
     debounce = setTimeout(updateData, 300);
-  });
+  };
 
-  prevPage.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); }});
-  nextPage.addEventListener('click', () => { if (currentPage < Math.ceil(filteredData.length / pageSize)) { currentPage++; renderTable(); }});
+  prevPage.onclick = () => { if (currentPage > 1) { currentPage--; renderTable(); }};
+  nextPage.onclick = () => { if (currentPage < Math.ceil(filteredData.length / pageSize)) { currentPage++; renderTable(); }};
 
   if (detailsClose && detailsModal) {
-    detailsClose.addEventListener('click', () => {
+    detailsClose.onclick = () => {
       detailsModal.style.display = 'none';
-    });
+    };
 
     window.addEventListener('click', (e) => {
       if (e.target === detailsModal) {
@@ -1510,7 +1428,130 @@ function initRepresentatives() {
       }
     });
   }
+
+  populateStateFilter();
+  populatePartyFilter();
+  updateData();
 }
+
+
+function partyLean(partyCode) {
+  const normalized = String(partyCode || '').toUpperCase();
+  if (normalized === 'BJP' || normalized === 'INC') return 'National Party';
+  if (normalized === 'AAP' || normalized === 'TMC' || normalized === 'DMK') return 'Regional-National Hybrid';
+  if (normalized === 'SP' || normalized === 'BSP' || normalized === 'NCP' || normalized === 'AIMIM') return 'Regional Party';
+  return 'Other / Independent Bloc';
+}
+
+function parameterBand(score) {
+  if (!Number.isFinite(score)) return 'Unavailable';
+  if (score >= 75) return 'High';
+  if (score >= 55) return 'Moderate';
+  return 'Low';
+}
+
+async function fetchRepresentativeDetails(rep, repType) {
+  const config = getLiveConfig();
+  if (!config.endpoints.representativeDetails) return null;
+  try {
+    const url = new URL(config.endpoints.representativeDetails, window.location.origin);
+    url.searchParams.set('name', rep.name);
+    url.searchParams.set('constituency', rep.constituency || '');
+    url.searchParams.set('type', repType);
+    const response = await fetch(url.toString());
+    if (!response.ok) return null;
+    return await response.json();
+  } catch { return null; }
+}
+
+async function openRepresentativeDetails(rep, repType) {
+  const detailsModal = document.getElementById('repDetailsModal');
+  if (!detailsModal) return;
+
+  const KNOWN_REP_PHOTOS = {
+    'Narendra Modi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Shri_Narendra_Modi%2C_Prime_Minister_of_India.jpg/440px-Shri_Narendra_Modi%2C_Prime_Minister_of_India.jpg',
+    'Rahul Gandhi': 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Rahul_Gandhi_in_WEF_2020.jpg/440px-Rahul_Gandhi_in_WEF_2020.jpg',
+    'Amit Shah': 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Amit_Shah_in_2023.jpg/440px-Amit_Shah_in_2023.jpg'
+  };
+
+  const liveDetails = await fetchRepresentativeDetails(rep, repType);
+  const assessment = liveDetails?.assessment || {};
+  const deepProfile = liveDetails?.profile || {};
+  const partyVar = `var(--party-${rep.party.toLowerCase().replace(/[^a-z0-9]/g, '')}, var(--party-other))`;
+  const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(rep.name)}&background=1a56db&color=ffffff&size=256&bold=true`;
+  const profileImage = liveDetails?.image || KNOWN_REP_PHOTOS[rep.name] || fallbackAvatar;
+
+  const setText = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = value || 'N/A';
+  };
+
+  setText('repDetailsName', rep.name);
+  setText('repDetailsRole', liveDetails?.roleLabel || (repType === 'mla' ? 'State MLA' : 'Lok Sabha MP'));
+  setText('repDetailsConstituency', `${rep.constituency}, ${rep.state || 'India'}`);
+  setText('repDetailsStatus', assessment.politicalStatus || 'Unavailable');
+  setText('repDetailsPartyLean', partyLean(rep.party));
+  setText('repDetailsTenure', deepProfile.tenureYears ? `${deepProfile.tenureYears} years` : 'N/A');
+  setText('repDetailsOverall', Number.isFinite(assessment.overallScore) ? `${assessment.overallScore}%` : 'N/A');
+  setText('repDetailsWinChance', Number.isFinite(assessment.winProbability) ? `${assessment.winProbability}%` : 'N/A');
+  setText('repDetailsAlliance', Number.isFinite(assessment.allianceStrength) ? `${assessment.allianceStrength}%` : 'N/A');
+  setText('repDetailAge', deepProfile.age ? String(deepProfile.age) : 'N/A');
+  setText('repDetailEducation', deepProfile.education);
+  setText('repDetailProfession', deepProfile.profession);
+  setText('repDetailCases', deepProfile.cases || 'N/A');
+  setText('repDetailAssets', deepProfile.assets);
+  setText('repDetailLiabilities', deepProfile.liabilities);
+  setText('repDetailNetWorth', deepProfile.netWorth);
+  setText('repDetailIssues', deepProfile.priorityIssues);
+
+  const partyBadge = document.getElementById('repDetailsPartyBadge');
+  if (partyBadge) { partyBadge.innerText = rep.party; partyBadge.style.background = partyVar; }
+
+  const image = document.getElementById('repDetailsImage');
+  if (image) {
+    image.onerror = () => { image.onerror = null; image.src = fallbackAvatar; };
+    image.src = profileImage;
+    image.alt = `${rep.name} profile image`;
+  }
+
+  const list = document.getElementById('repAssessmentList');
+  if (list) {
+    const params = Array.isArray(assessment.parameters) ? assessment.parameters : [];
+    list.innerHTML = params.length ? params.map(param => {
+      const band = parameterBand(param.value);
+      const color = !Number.isFinite(param.value) ? 'var(--text-secondary)' : (param.value >= 75 ? 'var(--green-light)' : (param.value >= 55 ? 'var(--saffron)' : 'var(--error)'));
+      const w = Number.isFinite(param.value) ? Math.max(0, Math.min(100, Number(param.value))) : 0;
+      return `<div class="rep-param-item"><div class="rep-param-head"><span>${param.key}</span><strong>${Number.isFinite(param.value) ? `${param.value}%` : 'N/A'}</strong></div><div class="rep-param-track"><div class="rep-param-fill" style="width:${w}%;background:${color};"></div></div><div class="rep-param-band" style="color:${color};">${band}</div></div>`;
+    }).join('') : '<div class="track-item pending"><strong>No live assessment parameters</strong><span>Representative details API did not return parameter scores.</span></div>';
+  }
+
+  const highlights = document.getElementById('repHighlights');
+  if (highlights) {
+    const notes = Array.isArray(assessment.highlights) ? assessment.highlights : [];
+    highlights.innerHTML = notes.length ? notes.map(h => `<li>${h}</li>`).join('') : '<li>No live highlights available for this representative.</li>';
+  }
+
+  const electionHistory = document.getElementById('repElectionHistory');
+  if (electionHistory) {
+    const history = Array.isArray(deepProfile.electionHistory) ? deepProfile.electionHistory : [];
+    electionHistory.innerHTML = history.length ? history.map(item => {
+      const color = item.result === 'Won' ? 'var(--green-light)' : 'var(--error)';
+      return `<tr><td>${item.year}</td><td style="color:${color};font-weight:700;">${item.result}</td><td>${item.voteShare ? `${item.voteShare}%` : 'N/A'}</td><td>${item.margin}</td></tr>`;
+    }).join('') : '<tr><td colspan="4" style="text-align:center;">No election history returned.</td></tr>';
+  }
+
+  const manifesto = document.getElementById('repManifestoList');
+  if (manifesto) {
+    const rows = Array.isArray(deepProfile.manifesto) ? deepProfile.manifesto : [];
+    manifesto.innerHTML = rows.length ? rows.map(item => {
+      const color = item.status === 'Fulfilled' ? 'var(--green-light)' : (item.status === 'In Progress' ? 'var(--saffron)' : 'var(--error)');
+      return `<div class="rep-manifesto-item"><div class="rep-manifesto-head"><strong>${item.title}</strong><span class="rep-manifesto-status" style="color:${color};">${item.status}</span></div><div class="rep-param-track"><div class="rep-param-fill" style="width:${Number(item.completion)||0}%;background:${color};"></div></div><div class="rep-manifesto-foot">Completion: ${Number.isFinite(Number(item.completion)) ? `${item.completion}%` : 'N/A'}</div></div>`;
+    }).join('') : '<div class="track-item pending"><strong>No manifesto mapping</strong><span>Representative detail feed does not include manifesto mapping yet.</span></div>';
+  }
+
+  detailsModal.style.display = 'flex';
+}
+
 
 function initPromises() {
   if (!window.PROMISES_DATA) return;
@@ -1520,16 +1561,17 @@ function initPromises() {
   const summaryCont = document.getElementById('promisesSummaryCards');
   if (summaryCont) {
     summaryCont.innerHTML = `
-      <div class="summary-card total glass-card scale-in"><div class="summary-value stat-number" data-target="${d.summary.total}">0</div><div class="summary-label">Total</div></div>
-      <div class="summary-card fulfilled glass-card scale-in" style="--delay:100ms"><div class="summary-value stat-number" data-target="${d.summary.fulfilled}">0</div><div class="summary-label">Fulfilled</div></div>
-      <div class="summary-card in-progress glass-card scale-in" style="--delay:200ms"><div class="summary-value stat-number" data-target="${d.summary.inProgress}">0</div><div class="summary-label">In Progress</div></div>
-      <div class="summary-card not-started glass-card scale-in" style="--delay:300ms"><div class="summary-value stat-number" data-target="${d.summary.notStarted}">0</div><div class="summary-label">Not Started</div></div>
+      <div class="summary-card total glass-card scale-in"><div class="summary-value stat-number" data-target="${d.summary.total}">${d.summary.total}</div><div class="summary-label">Total</div></div>
+      <div class="summary-card fulfilled glass-card scale-in" style="--delay:100ms"><div class="summary-value stat-number" data-target="${d.summary.fulfilled}">${d.summary.fulfilled}</div><div class="summary-label">Fulfilled</div></div>
+      <div class="summary-card in-progress glass-card scale-in" style="--delay:200ms"><div class="summary-value stat-number" data-target="${d.summary.inProgress}">${d.summary.inProgress}</div><div class="summary-label">In Progress</div></div>
+      <div class="summary-card not-started glass-card scale-in" style="--delay:300ms"><div class="summary-value stat-number" data-target="${d.summary.notStarted}">${d.summary.notStarted}</div><div class="summary-label">Not Started</div></div>
     `;
   }
 
   // Accordion
   const accordion = document.getElementById('promisesAccordion');
   if (accordion) {
+    accordion.innerHTML = '';
     d.categories.forEach(cat => {
       const fulfilled = cat.promises.filter(p => p.status === 'fulfilled').length;
       const total = cat.promises.length;
@@ -1552,7 +1594,7 @@ function initPromises() {
                   <span class="promise-title">${p.title}</span>
                   <span class="status-badge status-${p.status}">${p.status.replace('-', ' ')}</span>
                 </div>
-                <div class="promise-desc">${p.description} (${p.year})</div>
+                <div class="promise-desc">${p.description} (${p.year || '2024'})</div>
               </div>
             `).join('')}
           </div>
@@ -1560,13 +1602,13 @@ function initPromises() {
       `;
       const header = item.querySelector('.category-header');
       const content = item.querySelector('.category-content');
-      header.addEventListener('click', () => {
+      header.onclick = () => {
         if (content.style.maxHeight) {
           content.style.maxHeight = null;
         } else {
           content.style.maxHeight = content.scrollHeight + "px";
         }
-      });
+      };
       accordion.appendChild(item);
     });
   }
@@ -1780,7 +1822,7 @@ function initGlobalSearch() {
 }
 
 /**
- * Highly Stylized Hero Map Implementation
+ * Premium Hero Map — India neon political map with party fills
  */
 async function initHeroNeonMap() {
   const container = document.getElementById('heroMap');
@@ -1788,100 +1830,155 @@ async function initHeroNeonMap() {
 
   try {
     const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-      const API_BASE = IS_LOCAL && window.location.port !== '8787' ? 'http://localhost:8787' : '';
-      const response = await fetch(API_BASE + '/api/map/india-states');
+    const API_BASE = IS_LOCAL && window.location.port !== '8787' ? 'http://localhost:8787' : '';
+    const response = await fetch(API_BASE + '/api/map/india-states');
     if (!response.ok) throw new Error('Map data unavailable');
     const geo = await response.json();
     const features = geo.features || [];
+    if (!features.length) throw new Error('No features');
 
-    // Major Cities Data
-    const cities = [
-      { name: 'New Delhi', lat: 28.6139, lon: 77.2090 },
-      { name: 'Mumbai', lat: 19.0760, lon: 72.8777 },
-      { name: 'Kolkata', lat: 22.5726, lon: 88.3639 },
-      { name: 'Bengaluru', lat: 12.9716, lon: 77.5946 },
-      { name: 'Chennai', lat: 13.0827, lon: 80.2707 }
+    // Collect all coordinates safely (no spread on huge arrays)
+    let minLon = Infinity, maxLon = -Infinity, minLat = Infinity, maxLat = -Infinity;
+    features.forEach(f => {
+      const geom = f.geometry;
+      const rings = geom.type === 'Polygon' ? geom.coordinates :
+                    geom.type === 'MultiPolygon' ? geom.coordinates.flat() : [];
+      rings.forEach(ring => ring.forEach(coord => {
+        const lon = Number(coord[0]), lat = Number(coord[1]);
+        if (lon < minLon) minLon = lon;
+        if (lon > maxLon) maxLon = lon;
+        if (lat < minLat) minLat = lat;
+        if (lat > maxLat) maxLat = lat;
+      }));
+    });
+
+    const W = 440, H = 500, PAD = 24;
+    const project = (lon, lat) => [
+      PAD + ((lon - minLon) / (maxLon - minLon)) * (W - PAD * 2),
+      PAD + ((maxLat - lat) / (maxLat - minLat)) * (H - PAD * 2)
     ];
 
-    // Projection helpers (simplified for hero visual)
-    const points = [];
-    features.forEach(f => {
-      const coords = f.geometry.type === 'Polygon' ? f.geometry.coordinates : f.geometry.coordinates.flat();
-      coords.forEach(ring => ring.forEach(p => points.push(p)));
-    });
-
-    const lons = points.map(p => p[0]);
-    const lats = points.map(p => p[1]);
-    const bounds = {
-      minLon: Math.min(...lons), maxLon: Math.max(...lons),
-      minLat: Math.min(...lats), maxLat: Math.max(...lats)
+    const PARTY_COLORS = {
+      bjp: '#FF9933', inc: '#00BFFF', aap: '#0066CC', tmc: '#2E8B57',
+      dmk: '#CC0000', sp: '#EE1111', bsp: '#1111FF', ncp: '#004C99',
+      tdp: '#f6d32d', jmm: '#3f8f3f', cpim: '#d7263d', nc: '#c026d3',
+      zpm: '#8b5cf6', skm: '#0ea5e9', nda: '#FF9933', other: '#4a5080'
     };
 
-    const width = 400, height = 450, pad = 30;
-    const project = (lon, lat) => {
-      const x = pad + ((lon - bounds.minLon) / (bounds.maxLon - bounds.minLon)) * (width - pad * 2);
-      const y = pad + ((bounds.maxLat - lat) / (bounds.maxLat - bounds.minLat)) * (height - pad * 2);
-      return [x, y];
-    };
+    function getPartyColor(rulingParty) {
+      if (!rulingParty) return PARTY_COLORS.other;
+      const key = rulingParty.toLowerCase().replace(/[^a-z0-9]/g, '');
+      return PARTY_COLORS[key] || PARTY_COLORS.other;
+    }
 
-    // Build SVG
-    let svg = `<svg viewBox="0 0 ${width} ${height}" class="india-neon-map">
-      <defs>
-        <linearGradient id="neonGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#138808;stop-opacity:1" />
-          <stop offset="100%" style="stop-color:#00ffff;stop-opacity:1" />
-        </linearGradient>
-        <filter id="glow">
-          <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
-          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-      
-      <!-- High-tech background elements -->
-      <circle cx="${width/2}" cy="${height/2}" r="180" class="map-background-circle" />
-      <g class="map-particles">
-        ${Array.from({length:15}).map(() => `<circle cx="${Math.random()*width}" cy="${Math.random()*height}" r="${Math.random()*1.5}" opacity="${Math.random()*0.5}" />`).join('')}
-      </g>`;
-
-    // Render States
-    features.forEach(feature => {
-      const name = feature.properties.name;
-      const stateData = window.STATES_DATA.find(s => s.name === name);
-      const displayName = stateData ? stateData.name : name;
-      
-      const rings = feature.geometry.type === 'Polygon' ? [feature.geometry.coordinates] : feature.geometry.coordinates;
+    // Build state paths
+    const statePaths = features.map(f => {
+      const name = f.properties?.name || '';
+      const state = window.STATES_DATA?.find(s => s.name === name);
+      const color = state ? getPartyColor(state.rulingParty) : PARTY_COLORS.other;
+      const geom = f.geometry;
+      const rings = geom.type === 'Polygon' ? geom.coordinates :
+                    geom.type === 'MultiPolygon' ? geom.coordinates.flat() : [];
       const d = rings.map(ring => {
-        const poly = ring[0] || ring;
-        return poly.map((p, i) => {
-          const [x, y] = project(p[0], p[1]);
-          return (i === 0 ? 'M' : 'L') + `${x.toFixed(1)},${y.toFixed(1)}`;
+        if (!ring.length) return '';
+        return ring.map((c, i) => {
+          const [x, y] = project(Number(c[0]), Number(c[1]));
+          return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`;
         }).join('') + 'Z';
       }).join(' ');
+      if (!d.trim()) return '';
+      return `<path d="${d}" fill="${color}" fill-opacity="0.55" stroke="rgba(255,255,255,0.18)" stroke-width="0.6"
+        class="state-path" onclick="window.openConstituencyModal('${name.replace(/'/g, '')}')"
+        data-name="${name.replace(/"/g, '')}"><title>${name}</title></path>`;
+    }).join('');
 
-      svg += `<path d="${d}" class="state-path" filter="url(#glow)" onclick="window.openConstituencyModal('${name}')">
-        <title>${name}${voters ? ' | Voters: ' + voters : ''}</title>
-      </path>`;
-      
-      const [cx, cy] = project(
-        (rings[0][0][0][0] + rings[0][0][Math.floor(rings[0][0].length/2)][0]) / 2,
-        (rings[0][0][0][1] + rings[0][0][Math.floor(rings[0][0].length/2)][1]) / 2
-      );
-      svg += `<text x="${cx}" y="${cy}" class="voter-count-label">${displayName}</text>`;
-    });
+    // Major cities
+    const cities = [
+      { n: 'Delhi',     lat: 28.61, lon: 77.21 },
+      { n: 'Mumbai',    lat: 19.08, lon: 72.88 },
+      { n: 'Kolkata',   lat: 22.57, lon: 88.36 },
+      { n: 'Chennai',   lat: 13.08, lon: 80.27 },
+      { n: 'Bengaluru', lat: 12.97, lon: 77.59 },
+      { n: 'Hyderabad', lat: 17.38, lon: 78.49 },
+      { n: 'Patna',     lat: 25.61, lon: 85.14 }
+    ];
+    const cityMarkup = cities.map(c => {
+      const [x, y] = project(c.lon, c.lat);
+      const id = `city-pulse-${c.n.replace(/\s/g,'')}`;
+      return `<g>
+        <circle cx="${x}" cy="${y}" r="5" fill="rgba(255,255,255,0.15)" class="city-pulse" id="${id}"/>
+        <circle cx="${x}" cy="${y}" r="2.5" fill="#00ffff" filter="url(#glowFilter)"/>
+        <text x="${x + 6}" y="${y + 3}" class="city-label">${c.n}</text>
+      </g>`;
+    }).join('');
 
-    // Render Cities
-    cities.forEach(city => {
-      const [x, y] = project(city.lon, city.lat);
-      svg += `
-        <circle cx="${x}" cy="${y}" r="2.5" class="city-marker" />
-        <text x="${x + 4}" y="${y + 2}" class="city-label">${city.name}</text>
-      `;
-    });
+    // Scanline grid
+    const gridLines = [];
+    for (let gx = 0; gx <= W; gx += 44)
+      gridLines.push(`<line x1="${gx}" y1="0" x2="${gx}" y2="${H}" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>`);
+    for (let gy = 0; gy <= H; gy += 44)
+      gridLines.push(`<line x1="0" y1="${gy}" x2="${W}" y2="${gy}" stroke="rgba(255,255,255,0.04)" stroke-width="0.5"/>`);
 
-    svg += '</svg>';
-    container.innerHTML = svg;
+    container.innerHTML = `
+      <svg viewBox="0 0 ${W} ${H}" class="india-neon-map" aria-label="India political map showing state ruling parties">
+        <defs>
+          <radialGradient id="mapBgGrad" cx="50%" cy="45%" r="55%">
+            <stop offset="0%" stop-color="#1a1f4e" stop-opacity="1"/>
+            <stop offset="100%" stop-color="#0a0e27" stop-opacity="1"/>
+          </radialGradient>
+          <filter id="glowFilter" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="3" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="stateGlow" x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur stdDeviation="6" result="blur"/>
+            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <style>
+            @keyframes cityPulse {
+              0%,100% { r: 5; opacity: 0.15; }
+              50% { r: 10; opacity: 0; }
+            }
+            .city-pulse { animation: cityPulse 2.5s ease-out infinite; }
+            .state-path { transition: fill-opacity 0.2s, filter 0.2s; cursor: pointer; }
+            .state-path:hover { fill-opacity: 0.85; filter: url(#stateGlow); }
+          </style>
+        </defs>
+
+        <!-- Background -->
+        <rect width="${W}" height="${H}" fill="url(#mapBgGrad)" rx="12"/>
+
+        <!-- Grid overlay -->
+        <g opacity="1">${gridLines.join('')}</g>
+
+        <!-- State fills -->
+        <g>${statePaths}</g>
+
+        <!-- Cities -->
+        <g>${cityMarkup}</g>
+
+        <!-- Border glow ring -->
+        <rect width="${W}" height="${H}" fill="none" rx="12"
+          stroke="rgba(26,86,219,0.3)" stroke-width="1.5"
+          filter="url(#glowFilter)"/>
+      </svg>`;
 
   } catch (err) {
-    container.innerHTML = `<p class="map-error">Interactive Map Visual Unavailable</p>`;
+    // Fallback: render a beautiful static SVG placeholder
+    container.innerHTML = `
+      <svg viewBox="0 0 440 500" class="india-neon-map" aria-label="India map placeholder">
+        <defs>
+          <radialGradient id="fallbackBg" cx="50%" cy="50%" r="70%">
+            <stop offset="0%" stop-color="#1a1f4e"/><stop offset="100%" stop-color="#0a0e27"/>
+          </radialGradient>
+        </defs>
+        <rect width="440" height="500" fill="url(#fallbackBg)" rx="12"/>
+        <path d="M167 54l44 15 26 40 55 17 63 44 8 46-19 39 12 38-29 24 9 42-34 25-10 49-39 39-32 5-27 58-52-26-16-54-49-23-28-58 13-47-34-28-25-70 21-73 42-58 49-18 28-44 44-12z"
+          transform="translate(50,20) scale(1.1)"
+          fill="rgba(26,86,219,0.25)" stroke="rgba(26,86,219,0.6)" stroke-width="1.5"
+          filter="drop-shadow(0 0 12px rgba(26,86,219,0.5))"/>
+        <text x="220" y="260" text-anchor="middle" fill="rgba(255,255,255,0.4)" font-size="13" font-family="Inter,sans-serif">India</text>
+        <text x="220" y="480" text-anchor="middle" fill="rgba(255,255,255,0.2)" font-size="10" font-family="Inter,sans-serif">Map data loading...</text>
+      </svg>`;
   }
 }

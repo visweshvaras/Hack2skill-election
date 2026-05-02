@@ -2,8 +2,8 @@ const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hos
 const API_BASE = IS_LOCAL && window.location.port !== '8787' ? 'http://localhost:8787' : '';
 
 window.LIVE_DATA_CONFIG = {
-  // true = do not use bundled static datasets
-  liveOnly: true,
+  // false = use bundled static datasets as fallback when live scraping fails
+  liveOnly: false,
 
   // Refresh interval for all live internet calls
   refreshMs: 60000,
@@ -49,7 +49,7 @@ window.LIVE_DATA_CONFIG = {
 
   // Directorate of Enforcement (ED) cases feed
   edCases: {
-    endpoint: '',
+    endpoint: API_BASE + '/api/ed-cases/live',
     apiKey: '',
     max: 20
   }

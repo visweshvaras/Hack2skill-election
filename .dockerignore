@@ -1,0 +1,9 @@
+node_modules
+.git
+.github
+.planning
+.venv
+python_tracker
+*.bat
+*.md
+.gemini
